@@ -4,17 +4,27 @@
 #include <geometry_msgs/Point.h>
 #include <sdc_interaction/AcquireObservableCoordinate.h>
 
+geometry_msgs::Point tracking_target_coordinate;
+
 bool acquire_observable_coordinate(sdc_interaction::AcquireObservableCoordinate::Request &req, sdc_interaction::AcquireObservableCoordinate::Response &res)
 {
     ros::NodeHandle nh;
     ros::Publisher observable_coordinate_pub = nh.advertise<geometry_msgs::Point>("observable_coordinate", 1);
 
-    geometry_msgs::Point point;
-    point.x = req.input_point.x;
-    point.y = req.input_point.y;
-    point.z = req.input_point.z;
+    tracking_target_coordinate.x = req.input_point.x;
+    tracking_target_coordinate.y = req.input_point.y;
+    tracking_target_coordinate.z = req.input_point.z;
+    
 
-    observable_coordinate_pub.publish(point);
+    ros::ServiceClient execute_observing_client = nh.serviceClient<std_srvs::Empty>("/acquire_observable_coordinate");
+    std_srvs::Empty execute_observing_req;
+    if (!execute_observing_client.call(execute_observing_req))
+    {
+        ROS_ERROR("Failed to call execute_observing_path service");
+        return false;
+    }
+
+    observable_coordinate_pub.publish(tracking_target_coordinate);
     res.success = true;
     return true;
 }
@@ -27,6 +37,7 @@ bool execute_observing_path(std_srvs::Empty::Request &req, std_srvs::Empty::Resp
     ros::ServiceClient execute_trajectory_client = nh.serviceClient<std_srvs::Empty>("/mrirac_trajectory_planner/execute_trajectory");
 
     mrirac_msgs::TrajectoryPlan plan_trajectory_req;
+
     plan_trajectory_req.request.target_pose.position.x = -0.51;
     plan_trajectory_req.request.target_pose.position.y = 0.08;
     plan_trajectory_req.request.target_pose.position.z = 0.53;
