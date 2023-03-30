@@ -4,27 +4,26 @@
 #include <geometry_msgs/Point.h>
 #include <sdc_interaction/AcquireObservableCoordinate.h>
 
-geometry_msgs::Point tracking_target_coordinate;
+double observable_target_x, observable_target_y, observable_target_z;
+
+void observable_coordinate_callback(const geometry_msgs::Point::ConstPtr &point)
+{
+    observable_target_x = point->x;
+    observable_target_y = point->y;
+    observable_target_z = point->z;
+}
 
 bool acquire_observable_coordinate(sdc_interaction::AcquireObservableCoordinate::Request &req, sdc_interaction::AcquireObservableCoordinate::Response &res)
 {
     ros::NodeHandle nh;
     ros::Publisher observable_coordinate_pub = nh.advertise<geometry_msgs::Point>("observable_coordinate", 1);
 
-    tracking_target_coordinate.x = req.input_point.x;
-    tracking_target_coordinate.y = req.input_point.y;
-    tracking_target_coordinate.z = req.input_point.z;
-    
+    geometry_msgs::Point point;
+    point.x = req.input_point.x;
+    point.y = req.input_point.y;
+    point.z = req.input_point.z;
 
-    ros::ServiceClient execute_observing_client = nh.serviceClient<std_srvs::Empty>("/acquire_observable_coordinate");
-    std_srvs::Empty execute_observing_req;
-    if (!execute_observing_client.call(execute_observing_req))
-    {
-        ROS_ERROR("Failed to call execute_observing_path service");
-        return false;
-    }
-
-    observable_coordinate_pub.publish(tracking_target_coordinate);
+    observable_coordinate_pub.publish(point);
     res.success = true;
     return true;
 }
@@ -33,11 +32,11 @@ bool acquire_observable_coordinate(sdc_interaction::AcquireObservableCoordinate:
 bool execute_observing_path(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
 {
     ros::NodeHandle nh;
+    ros::Subscriber observable_coordinate_sub = nh.subscribe("observable_coordinate", 1, observable_coordinate_callback);
     ros::ServiceClient plan_trajectory_client = nh.serviceClient<mrirac_msgs::TrajectoryPlan>("/mrirac_trajectory_planner/plan_trajectory");
     ros::ServiceClient execute_trajectory_client = nh.serviceClient<std_srvs::Empty>("/mrirac_trajectory_planner/execute_trajectory");
 
     mrirac_msgs::TrajectoryPlan plan_trajectory_req;
-
     plan_trajectory_req.request.target_pose.position.x = -0.51;
     plan_trajectory_req.request.target_pose.position.y = 0.08;
     plan_trajectory_req.request.target_pose.position.z = 0.53;
