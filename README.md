@@ -16,28 +16,19 @@ Start the trajectory_execution_node in one terminal:
 rosrun sdc_interaction trajectory_execution_node
 ```
 
-This will launch the node, which provides the "acquire_observable_coordinate" and "execute_observing_path" services.
+This will launch the node, which provides the "execute_observing_path" services.
 
 1. In a separate terminal, source the ROS environment and your workspace again (as in step 2).
 
-2. Test the services:
+2. Test the service:
 
 To test the "acquire_observable_coordinate" service, use the following command:
 
 ```sh
-rosservice call /acquire_observable_coordinate "input_point:
+rosservice call /execute_observing_path "input_point:
   x: 1.0
   y: 2.0
   z: 3.0"
 ```
 
 This will call the service with an (x, y, z) coordinate of (1.0, 2.0, 3.0) as input.
-
-To test the "execute_observing_path" service, use the following command:
-
-```sh
-rosservice call /execute_observing_path "{}"
-```
-This will call the service with an empty request, and it will execute the path as defined in the service function.
-
-You can also list the available services with the command rosservice list to ensure your services are running correctly.
