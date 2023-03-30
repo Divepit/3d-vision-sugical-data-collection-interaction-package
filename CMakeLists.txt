@@ -11,6 +11,14 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  std_srvs
+  geometry_msgs
+  message_generation
+  sensor_msgs
+  moveit_ros_planning_interface
+  mrirac_msgs
+  kinova_msgs
+  mrirac_lib
 )
 
 ## System dependencies are found with CMake's conventions
@@ -53,12 +61,11 @@ find_package(catkin REQUIRED COMPONENTS
 #   Message2.msg
 # )
 
-## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+# Generate services in the 'srv' folder
+add_service_files(
+  FILES
+  AcquireObservableCoordinate.srv
+  )
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -67,11 +74,11 @@ find_package(catkin REQUIRED COMPONENTS
 #   Action2.action
 # )
 
-## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+# Generate added messages and services with any dependencies listed here
+generate_messages(
+  DEPENDENCIES
+  geometry_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -105,7 +112,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES sdc_interaction
-#  CATKIN_DEPENDS roscpp rospy std_msgs
+ CATKIN_DEPENDS message_runtime
 #  DEPENDS system_lib
 )
 
@@ -204,3 +211,16 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+
+
+## Declare a C++ executable
+add_executable(trajectory_execution_node src/trajectory_execution_node.cpp)
+
+## Add cmake target dependencies of the executable
+add_dependencies(trajectory_execution_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+## Specify libraries to link a library or executable target against
+target_link_libraries(trajectory_execution_node
+  ${catkin_LIBRARIES}
+)
