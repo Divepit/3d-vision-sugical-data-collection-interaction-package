@@ -2,10 +2,11 @@
 #include <mrirac_msgs/TrajectoryPlan.h>
 #include <std_srvs/Empty.h>
 #include <geometry_msgs/Point.h>
-#include <sdc_interaction/AcquireObservableCoordinate.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <sdc_interaction/ExecuteOberservingPath.h>
 
 
-bool execute_observing_path(sdc_interaction::AcquireObservableCoordinate::Request &req, sdc_interaction::AcquireObservableCoordinate::Response &res)
+bool execute_observing_path(sdc_interaction::ExecuteOberservingPath::Request &req, sdc_interaction::ExecuteOberservingPath::Response &res)
 {
     ros::NodeHandle nh;
     ros::ServiceClient plan_trajectory_client = nh.serviceClient<mrirac_msgs::TrajectoryPlan>("/mrirac_trajectory_planner/plan_trajectory");
@@ -13,27 +14,58 @@ bool execute_observing_path(sdc_interaction::AcquireObservableCoordinate::Reques
 
     mrirac_msgs::TrajectoryPlan plan_trajectory_req;
     geometry_msgs::Point point;
-    
-    point.x = req.input_point.x;
-    point.y = req.input_point.y;
-    point.z = req.input_point.z;
 
-    // print observable target x y and z to ros console
-    ROS_INFO("observable target x: %f", point.x);
-    ROS_INFO("observable target y: %f", point.y);
-    ROS_INFO("observable target z: %f", point.z);
+    // <---- Calculate Camera Pose
+    double x_c, y_c, z_c;
+    double observable_target_x, observable_target_y, observable_target_z;
 
-    plan_trajectory_req.request.target_pose.position.x = -0.51;
-    plan_trajectory_req.request.target_pose.position.y = 0.08;
-    plan_trajectory_req.request.target_pose.position.z = 0.53;
-    plan_trajectory_req.request.target_pose.orientation.x = 0.0;
-    plan_trajectory_req.request.target_pose.orientation.y = 0.0;
-    plan_trajectory_req.request.target_pose.orientation.z = 0.0;
-    plan_trajectory_req.request.target_pose.orientation.w = 1.0;
+    // Hardcode Target Position
+    observable_target_x = 1.0;
+    observable_target_y = 0.0;
+    observable_target_z = 0.75;
+
+    // Read desired camera pose from request
+    x_c = req.input_point.x;
+    y_c = req.input_point.y;
+    z_c = req.input_point.z;
+
+    // print desired camera pose x y and z to ros console
+    ROS_INFO("desired camera pose x: %f", x_c);
+    ROS_INFO("desired camera pose y: %f", y_c);
+    ROS_INFO("desired camera pose z: %f", z_c);
+
+    // Compute the direction vector from the camera to the target
+    tf2::Vector3 direction_vec(observable_target_x - x_c, observable_target_y - y_c, observable_target_z - z_c);
+
+    // Normalize the vector
+    direction_vec.normalize();
+
+    // Compute the rotation axis and angle
+    tf2::Vector3 axis = tf2::Vector3(0, 0, 1).cross(direction_vec);
+    double angle = std::acos(tf2::Vector3(0, 0, 1).dot(direction_vec));
+
+    // Convert the axis-angle representation to a quaternion
+    tf2::Quaternion camera_pose_quarternion;
+    camera_pose_quarternion.setRotation(axis, angle);
+    // ----> Calculate Camera Poser
+
+    ROS_INFO("camera_pose_quarternion.x() %f", camera_pose_quarternion.x());
+    ROS_INFO("camera_pose_quarternion.y() %f", camera_pose_quarternion.y());
+    ROS_INFO("camera_pose_quarternion.z() %f", camera_pose_quarternion.z());
+    ROS_INFO("camera_pose_quarternion.w() %f", camera_pose_quarternion.w());
+
+    plan_trajectory_req.request.target_pose.position.x = x_c;
+    plan_trajectory_req.request.target_pose.position.y = y_c;
+    plan_trajectory_req.request.target_pose.position.z = z_c;
+    plan_trajectory_req.request.target_pose.orientation.x = camera_pose_quarternion.x();
+    plan_trajectory_req.request.target_pose.orientation.y = camera_pose_quarternion.y();
+    plan_trajectory_req.request.target_pose.orientation.z = camera_pose_quarternion.z();
+    plan_trajectory_req.request.target_pose.orientation.w = camera_pose_quarternion.w();
 
     if (!plan_trajectory_client.call(plan_trajectory_req))
     {
         ROS_ERROR("Failed to call plan_trajectory service");
+        res.success = false;
         return false;
     }
 
@@ -41,6 +73,7 @@ bool execute_observing_path(sdc_interaction::AcquireObservableCoordinate::Reques
     if (!execute_trajectory_client.call(execute_trajectory_req))
     {
         ROS_ERROR("Failed to call execute_trajectory service");
+        res.success = false;
         return false;
     }
     

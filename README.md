@@ -22,7 +22,7 @@ This will launch the node, which provides the "execute_observing_path" services.
 
 2. Test the service:
 
-To test the "acquire_observable_coordinate" service, use the following command:
+To test the "execute_observing_path" service, use the following command:
 
 ```sh
 rosservice call /execute_observing_path "input_point:

@@ -1,4 +1,4 @@
-# AcquireObservableCoordinate.srv
+# ExecuteOberservingPath.srv
 geometry_msgs/Point input_point
 ---
 bool success
