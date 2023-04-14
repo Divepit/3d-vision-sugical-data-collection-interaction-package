@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
 
     double radius = 1.0;
     double angular_speed = 0.8; // rad/s
-    double dt = 0.1; // 10 Hz update rate
+    double dt = 0.05; // 10 Hz update rate
     ros::Rate rate(1.0/dt);
 
     while (ros::ok()) {
