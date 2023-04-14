@@ -5,6 +5,17 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <sdc_interaction/ExecuteOberservingPath.h>
 
+double observable_target_x, observable_target_y, observable_target_z;
+
+void target_coordinates_callback(const geometry_msgs::Point::ConstPtr &msg)
+{
+    observable_target_x = msg->x;
+    observable_target_y = msg->y;
+    observable_target_z = msg->z;
+    // ROS_INFO("observable_target_x: %f", observable_target_x);
+    // ROS_INFO("observable_target_y: %f", observable_target_y);
+    // ROS_INFO("observable_target_z: %f", observable_target_z);
+}
 
 bool execute_observing_path(sdc_interaction::ExecuteOberservingPath::Request &req, sdc_interaction::ExecuteOberservingPath::Response &res)
 {
@@ -17,12 +28,15 @@ bool execute_observing_path(sdc_interaction::ExecuteOberservingPath::Request &re
 
     // <---- Calculate Camera Pose
     double x_c, y_c, z_c;
-    double observable_target_x, observable_target_y, observable_target_z;
 
-    // Hardcode Target Position
-    observable_target_x = 1.0;
-    observable_target_y = 0.0;
-    observable_target_z = 0.75;
+    // // Hardcode Target Position
+    // observable_target_x = 1.0;
+    // observable_target_y = 0.0;
+    // observable_target_z = 0.75;
+
+    // ROS_INFO("observable_target_x: %f", observable_target_x);
+    // ROS_INFO("observable_target_y: %f", observable_target_y);
+    // ROS_INFO("observable_target_z: %f", observable_target_z);
 
     // Read desired camera pose from request
     x_c = req.input_point.x;
@@ -85,6 +99,10 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "trajectory_execution_node");
     ros::NodeHandle nh;
+
+    // Create a subscriber for the target_coordinates topic
+    ros::Subscriber target_coordinates_sub = nh.subscribe("target_coordinates", 10, target_coordinates_callback);
+
     ros::ServiceServer execute_observing_path_service = nh.advertiseService("execute_observing_path", execute_observing_path);
 
     ros::spin();

@@ -8,6 +8,9 @@ bool change_target_coordinate(sdc_interaction::ChangeTargetCoordinate::Request &
                               sdc_interaction::ChangeTargetCoordinate::Response &res)
 {
     target_coordinate = req.new_coordinate;
+    ROS_INFO("New target coordinate: (%f, %f, %f)", target_coordinate.x, target_coordinate.y, target_coordinate.z);
+
+
     res.success = true;
     return true;
 }
