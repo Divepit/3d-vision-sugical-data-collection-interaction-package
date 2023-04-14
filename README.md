@@ -26,9 +26,9 @@ To test the "execute_observing_path" service, use the following command:
 
 ```sh
 rosservice call /execute_observing_path "input_point:
-  x: 1.0
-  y: 2.0
-  z: 3.0"
+  x: 0.3
+  y: 0.1
+  z: 0.5"
 ```
 
 This will call the service with an (x, y, z) coordinate of (1.0, 2.0, 3.0) as input.
