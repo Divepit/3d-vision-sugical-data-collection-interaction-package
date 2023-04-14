@@ -1,4 +1,4 @@
-### Setup and run of full stack
+# Setup and run of full stack
 
 To run the services, follow the steps below:
 
@@ -16,7 +16,11 @@ To run all nodes and services with the kinova mrirac library combined, launch th
 roslaunch sdc_interaction interaction.launch 
 ```
 
-### Running separate nodes
+# Running separate nodes
+
+This package contains two nodes, one to execute a trajectory and bring the end effector to a desired location while looking at the target and a second node that lets us select a new coordinate for the target:
+
+## Trajectory execution node
 
 Start the trajectory_execution_node in one terminal:
 
@@ -38,6 +42,8 @@ rosservice call /execute_observing_path "input_point:
 ```
 
 This will call the service with an (x, y, z) coordinate of (1.0, 2.0, 3.0) as input.
+
+## Target publisher node
 
 
 Run the `target_publisher_node` to start publishing the target coordinates and the `change_target_coordinate` service.
