@@ -1,38 +1,38 @@
-#include "ros/ros.h"
-#include "geometry_msgs/PointStamped.h"
-#include "sdc_interaction/ChangeTargetCoordinate.h"
+#include <ros/ros.h>
+#include <geometry_msgs/Point.h>
+#include <sdc_interaction/ChangeTargetCoordinate.h>
 
-geometry_msgs::PointStamped target_coordinate;
+geometry_msgs::Point target_coordinate;
 
-bool changeTargetCoordinate(
-    sdc_interaction::ChangeTargetCoordinate::Request& req,
-    sdc_interaction::ChangeTargetCoordinate::Response& res)
+bool change_target_coordinate(sdc_interaction::ChangeTargetCoordinate::Request &req,
+                              sdc_interaction::ChangeTargetCoordinate::Response &res)
 {
-    target_coordinate.point = req.new_coordinate;
+    target_coordinate = req.new_coordinate;
     res.success = true;
-    res.message = "Target coordinate successfully updated";
     return true;
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     ros::init(argc, argv, "target_publisher_node");
     ros::NodeHandle nh;
 
-    ros::Publisher target_pub = nh.advertise<geometry_msgs::PointStamped>("target_coordinate", 10);
-    ros::ServiceServer service = nh.advertiseService("change_target_coordinate", changeTargetCoordinate);
+    // Create the publisher for the target coordinates topic
+    ros::Publisher target_coordinate_pub = nh.advertise<geometry_msgs::Point>("target_coordinates", 10);
 
-    target_coordinate.header.frame_id = "world";
-    target_coordinate.point.x = 0.0;
-    target_coordinate.point.y = 0.0;
-    target_coordinate.point.z = 0.0;
+    // Create the service for changing the target coordinate
+    ros::ServiceServer service = nh.advertiseService("change_target_coordinate", change_target_coordinate);
 
+    // Set the initial target coordinate
+    target_coordinate.x = 0.0;
+    target_coordinate.y = 0.0;
+    target_coordinate.z = 0.0;
+
+    // Publish the target coordinate at 10 Hz
     ros::Rate loop_rate(10);
-
     while (ros::ok())
     {
-        target_coordinate.header.stamp = ros::Time::now();
-        target_pub.publish(target_coordinate);
+        target_coordinate_pub.publish(target_coordinate);
         ros::spinOnce();
         loop_rate.sleep();
     }
