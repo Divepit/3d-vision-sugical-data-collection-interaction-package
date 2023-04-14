@@ -1,0 +1,4 @@
+geometry_msgs/Point new_coordinate
+---
+bool success
+string message

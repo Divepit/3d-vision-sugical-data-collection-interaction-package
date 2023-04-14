@@ -65,6 +65,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_service_files(
   FILES
   ExecuteOberservingPath.srv
+  ChangeTargetCoordinate.srv
   )
 
 ## Generate actions in the 'action' folder
@@ -112,7 +113,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES sdc_interaction
- CATKIN_DEPENDS message_runtime
+ CATKIN_DEPENDS geometry_msgs message_runtime
 #  DEPENDS system_lib
 )
 
@@ -222,5 +223,16 @@ add_dependencies(trajectory_execution_node ${${PROJECT_NAME}_EXPORTED_TARGETS} $
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(trajectory_execution_node
+  ${catkin_LIBRARIES}
+)
+
+# Add a new C++ executable for target_publisher_node
+add_executable(target_publisher_node src/target_publisher_node.cpp)
+
+# Add cmake target dependencies of the new executable
+add_dependencies(target_publisher_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+# Specify libraries to link the new executable target against
+target_link_libraries(target_publisher_node
   ${catkin_LIBRARIES}
 )
