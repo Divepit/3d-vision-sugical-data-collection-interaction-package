@@ -18,7 +18,9 @@ roslaunch sdc_interaction interaction.launch
 
 # Running separate nodes
 
-This package contains two nodes, one to execute a trajectory and bring the end effector to a desired location while looking at the target and a second node that lets us select a new coordinate for the target:
+This package contains two nodes, one to execute a trajectory and bring the end effector to a desired location while looking at the target and a second node that lets us select a new coordinate for the target.
+
+If you already launched the included launchfile mentioned above, you do not need to launch these nodes again, they are already in the launch file. You can however, call their services as explained in the secions below.
 
 ## Trajectory execution node
 
