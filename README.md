@@ -1,3 +1,5 @@
+### Setup and run of full stack
+
 To run the services, follow the steps below:
 
 1. Build your package using catkin_make or catkin build.
@@ -14,7 +16,7 @@ To run all nodes and services with the kinova mrirac library combined, launch th
 roslaunch sdc_interaction interaction.launch 
 ```
 
-1. Launch the required nodes and services:
+### Running separate nodes
 
 Start the trajectory_execution_node in one terminal:
 
@@ -24,9 +26,7 @@ rosrun sdc_interaction trajectory_execution_node
 
 This will launch the node, which provides the "execute_observing_path" services.
 
-1. In a separate terminal, source the ROS environment and your workspace again (as in step 2).
-
-2. Test the service:
+In a separate terminal, source the ROS environment and your workspace again (as in step 2).
 
 To test the "execute_observing_path" service, use the following command:
 
@@ -39,7 +39,6 @@ rosservice call /execute_observing_path "input_point:
 
 This will call the service with an (x, y, z) coordinate of (1.0, 2.0, 3.0) as input.
 
-## How to use the change_target_coordinate service
 
 Run the `target_publisher_node` to start publishing the target coordinates and the `change_target_coordinate` service.
    
