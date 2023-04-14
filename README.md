@@ -4,7 +4,7 @@ To run the services, follow the steps below:
 2. Source the ROS environment and your workspace:
 
 ```sh
-source /opt/ros/<your_ros_version>/setup.bash
+source /opt/ros/noetic/setup.bash
 source ~/catkin_ws/devel/setup.bash  # Replace with the path to your workspace if different
 ```
 
