@@ -8,6 +8,12 @@ source /opt/ros/noetic/setup.bash
 source ~/catkin_ws/devel/setup.bash  # Replace with the path to your workspace if different
 ```
 
+To run all nodes and services with the kinova mrirac library combined, launch the launchfile:
+
+```sh
+roslaunch sdc_interaction interaction.launch 
+```
+
 1. Launch the required nodes and services:
 
 Start the trajectory_execution_node in one terminal:
