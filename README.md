@@ -36,33 +36,40 @@ This will call the service with an (x, y, z) coordinate of (1.0, 2.0, 3.0) as in
 ## How to use the change_target_coordinate service
 
 1. Open a terminal and run `roscore` to start the ROS master.
-<code block start>
+   
+```sh
 roscore
-<code block end>
+```
 
-2. In a new terminal, navigate to your ROS package and build it using `catkin_make`. Source the ROS environment and your package's setup.bash file.
-<code block start>
+1. In a new terminal, navigate to your ROS package and build it using `catkin_make`. Source the ROS environment and your package's setup.bash file.
+   
+```sh
 cd ~/catkin_ws
 catkin_make
 source devel/setup.bash
-<code block end>
+```
 
-3. Run the `target_publisher_node` to start publishing the target coordinates and the `change_target_coordinate` service.
-<code block start>
+1. Run the `target_publisher_node` to start publishing the target coordinates and the `change_target_coordinate` service.
+   
+```sh
 rosrun sdc_interaction target_publisher_node
-<code block end>
+```
 
-4. Open another terminal and source the ROS environment and your package's setup.bash file.
-<code block start>
+1. Open another terminal and source the ROS environment and your package's setup.bash file.
+   
+```sh
 source /opt/ros/[YOUR_ROS_VERSION]/setup.bash
 source ~/catkin_ws/devel/setup.bash
-<code block end>
+```
+
 Replace `[YOUR_ROS_VERSION]` with your installed ROS version (e.g., `melodic`, `noetic`).
 
-5. To call the `change_target_coordinate` service and update the target coordinate, use the following command:
-<code block start>
+1. To call the `change_target_coordinate` service and update the target coordinate, use the following command:
+   
+```sh
 rosservice call /change_target_coordinate "{new_coordinate: {x: 1.0, y: 2.0, z: 3.0}}"
-<code block end>
+```
+
 Adjust the `x`, `y`, and `z` values as needed.
 
-6. The service should respond with a success message, indicating that the target coordinate has been updated.
+1. The service should respond with a success message, indicating that the target coordinate has been updated.
