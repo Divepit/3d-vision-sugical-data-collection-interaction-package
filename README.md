@@ -58,11 +58,11 @@ rosrun sdc_interaction target_publisher_node
 1. Open another terminal and source the ROS environment and your package's setup.bash file.
    
 ```sh
-source /opt/ros/[YOUR_ROS_VERSION]/setup.bash
+source /opt/ros/noetic/setup.bash
 source ~/catkin_ws/devel/setup.bash
 ```
 
-Replace `[YOUR_ROS_VERSION]` with your installed ROS version (e.g., `melodic`, `noetic`).
+Replace `noetic` with your installed ROS version (e.g., `melodic`, `noetic`).
 
 1. To call the `change_target_coordinate` service and update the target coordinate, use the following command:
    
