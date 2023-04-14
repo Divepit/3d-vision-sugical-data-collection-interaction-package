@@ -19,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
   mrirac_msgs
   kinova_msgs
   mrirac_lib
+  gazebo_ros
 )
 
 ## System dependencies are found with CMake's conventions
@@ -113,7 +114,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES sdc_interaction
- CATKIN_DEPENDS geometry_msgs message_runtime
+ CATKIN_DEPENDS geometry_msgs message_runtime gazebo_ros std_msgs
 #  DEPENDS system_lib
 )
 
@@ -236,3 +237,8 @@ add_dependencies(target_publisher_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${cat
 target_link_libraries(target_publisher_node
   ${catkin_LIBRARIES}
 )
+
+
+# flying cube 
+add_executable(flying_cube_node src/flying_cube_node.cpp)
+target_link_libraries(flying_cube_node ${catkin_LIBRARIES})

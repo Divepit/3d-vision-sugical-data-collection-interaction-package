@@ -116,7 +116,9 @@
   </node>
   <node name="trajectory_execution" pkg="sdc_interaction" type="trajectory_execution_node" output="screen">
   </node>
+  <node name="flying_cube" pkg="sdc_interaction" type="flying_cube_node" output="screen" launch-prefix="bash -c 'sleep 5; $0 $@'">
+  </node>
 
-  <!-- Rest of the launch file content -->
+
 
 </launch>
