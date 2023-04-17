@@ -30,9 +30,9 @@ int main(int argc, char **argv)
     ros::ServiceClient clear_octomap_client = nh.serviceClient<std_srvs::Empty>("/clear_octomap");
 
     // Set the initial target coordinate
-    target_coordinate.x = 0.0;
+    target_coordinate.x = 0.5;
     target_coordinate.y = 0.0;
-    target_coordinate.z = -3.0;
+    target_coordinate.z = 0.2;
 
     // Publish the target coordinate at 10 Hz
     ros::Rate loop_rate(10);
@@ -45,7 +45,7 @@ int main(int argc, char **argv)
         // {
         //     std_srvs::Empty clear_octomap_srv;
         //     clear_octomap_client.call(clear_octomap_srv);
-        //     ros::Duration(1).sleep(); // Sleep for 0.2 seconds (1/5 seconds)
+        //     ros::Duration(10).sleep(); // Sleep for 0.2 seconds (1/5 seconds)
         // }
 
         ros::spinOnce();
