@@ -32,7 +32,7 @@ int main(int argc, char **argv)
     // Set the initial target coordinate
     target_coordinate.x = 0.5;
     target_coordinate.y = 0.0;
-    target_coordinate.z = 0.2;
+    target_coordinate.z = 0.05;
 
     // Publish the target coordinate at 10 Hz
     ros::Rate loop_rate(10);

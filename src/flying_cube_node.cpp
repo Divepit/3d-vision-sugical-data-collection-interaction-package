@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
     obstacle_1.request.model_state.reference_frame = "world";
 
 
-    double radius = 0.2;
+    double radius = 0.1;
     double angular_speed = 0.8; // rad/s
     double dt = 0.05; // 10 Hz update rate
     ros::Rate rate(1.0/dt);
@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
 
         obstacle_1.request.model_state.pose.position.x = observable_target_x + x;
         obstacle_1.request.model_state.pose.position.y = observable_target_y + y;
-        obstacle_1.request.model_state.pose.position.z = observable_target_z;
+        obstacle_1.request.model_state.pose.position.z = observable_target_z + 0.2;
 
 
         if (client.call(set_model_state_srv) && client.call(obstacle_1)) {
