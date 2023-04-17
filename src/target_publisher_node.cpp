@@ -32,7 +32,7 @@ int main(int argc, char **argv)
     // Set the initial target coordinate
     target_coordinate.x = 0.0;
     target_coordinate.y = 0.0;
-    target_coordinate.z = 0.0;
+    target_coordinate.z = -3.0;
 
     // Publish the target coordinate at 10 Hz
     ros::Rate loop_rate(10);
@@ -40,13 +40,13 @@ int main(int argc, char **argv)
     {
         target_coordinate_pub.publish(target_coordinate);
 
-        // Call the clear_octomap service 5 times per second
-        for (int i = 0; i < 5; i++)
-        {
-            std_srvs::Empty clear_octomap_srv;
-            clear_octomap_client.call(clear_octomap_srv);
-            ros::Duration(1).sleep(); // Sleep for 0.2 seconds (1/5 seconds)
-        }
+        // // Call the clear_octomap service 5 times per second
+        // for (int i = 0; i < 5; i++)
+        // {
+        //     std_srvs::Empty clear_octomap_srv;
+        //     clear_octomap_client.call(clear_octomap_srv);
+        //     ros::Duration(1).sleep(); // Sleep for 0.2 seconds (1/5 seconds)
+        // }
 
         ros::spinOnce();
         loop_rate.sleep();
