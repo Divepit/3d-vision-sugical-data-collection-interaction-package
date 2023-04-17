@@ -1,5 +1,5 @@
 <launch>
-  <node launch-prefix="bash -c 'sleep 10; $0 $@'" name="flying_cube" pkg="sdc_interaction" type="flying_cube_node" output="screen">
+  <node launch-prefix="bash -c 'sleep 30; $0 $@'" name="flying_cube" pkg="sdc_interaction" type="flying_cube_node" output="screen">
   </node>
   <node name="target_publisher" pkg="sdc_interaction" type="target_publisher_node" output="screen">
   </node>
