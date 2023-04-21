@@ -1,15 +1,34 @@
-// voxel_dome_generator_node.cpp
-
 #include <ros/ros.h>
 #include <visualization_msgs/Marker.h>
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <geometry_msgs/TransformStamped.h>
+#include <sdc_interaction/UpdateVoxelDome.h> // Replace with your actual package name
+
+// Global variables
+double radius = 1.0;
+int voxel_count = 100;
+double scaling_factor = 0.8;
+
+// Service callback
+bool updateVoxelDome(sdc_interaction::UpdateVoxelDome::Request &req,
+                     sdc_interaction::UpdateVoxelDome::Response &res) {
+    radius = req.radius;
+    voxel_count = req.voxel_count;
+    scaling_factor = req.scaling_factor;
+
+    res.success = true;
+    res.message = "Voxel dome parameters updated.";
+
+    return true;
+}
 
 int main(int argc, char** argv) {
     ros::init(argc, argv, "voxel_dome_generator_node");
     ros::NodeHandle nh;
 
     ros::Publisher marker_pub = nh.advertise<visualization_msgs::Marker>("voxel_dome", 1);
+    // Advertise the service
+    ros::ServiceServer service = nh.advertiseService("update_voxel_dome", updateVoxelDome);
 
     // Hardcoded parameters
     geometry_msgs::Point root_position;
@@ -18,7 +37,7 @@ int main(int argc, char** argv) {
     root_position.z = 0.0;
 
     double radius = 0.9;
-    int voxel_count = 100;
+    int voxel_count = 300;
 
     // Marker setup
     visualization_msgs::Marker marker;
@@ -53,9 +72,10 @@ int main(int argc, char** argv) {
 
 
     // Generate the voxel positions
-    for (double x = -radius; x <= radius; x += voxel_size) {
-        for (double y = -radius; y <= radius; y += voxel_size) {
-            for (double z = 0; z <= radius; z += voxel_size) {
+    double iteration_step = voxel_size / scaling_factor;
+    for (double x = -radius; x <= radius; x += iteration_step) {
+        for (double y = -radius; y <= radius; y += iteration_step) {
+            for (double z = 0; z <= radius; z += iteration_step) {
                 double dist = sqrt(x * x + y * y + z * z);
                 if (dist <= radius) {
                     geometry_msgs::Point p;
@@ -67,6 +87,7 @@ int main(int argc, char** argv) {
             }
         }
     }
+
 
     ros::Rate r(1);
     while (ros::ok()) {

@@ -68,6 +68,7 @@ add_service_files(
   FILES
   ExecuteOberservingPath.srv
   ChangeTargetCoordinate.srv
+  UpdateVoxelDome.srv
   )
 
 ## Generate actions in the 'action' folder
@@ -81,6 +82,7 @@ add_service_files(
 generate_messages(
   DEPENDENCIES
   geometry_msgs
+  std_msgs
 )
 
 ################################################

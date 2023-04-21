@@ -1,0 +1,6 @@
+float64 radius
+int32 voxel_count
+float64 scaling_factor
+---
+bool success
+string message
