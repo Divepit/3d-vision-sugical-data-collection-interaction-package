@@ -1,8 +1,10 @@
 <launch>
-  <node launch-prefix="bash -c 'sleep 30; $0 $@'" name="flying_cube" pkg="sdc_interaction" type="flying_cube_node" output="screen">
+  <node launch-prefix="bash -c 'sleep 45; $0 $@'" name="flying_cube" pkg="sdc_interaction" type="flying_cube_node" output="screen">
   </node>
   <node name="target_publisher" pkg="sdc_interaction" type="target_publisher_node" output="screen">
   </node>
   <node name="trajectory_execution" pkg="sdc_interaction" type="trajectory_execution_node" output="screen">
+  </node>
+  <node launch-prefix="bash -c 'sleep 5; $0 $@'"  name="voxel_dome_generator" pkg="sdc_interaction" type="voxel_dome_generator_node" output="screen">
   </node>
 </launch>

@@ -20,6 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
   kinova_msgs
   mrirac_lib
   gazebo_ros
+  visualization_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -242,3 +243,7 @@ target_link_libraries(target_publisher_node
 # flying cube 
 add_executable(flying_cube_node src/flying_cube_node.cpp)
 target_link_libraries(flying_cube_node ${catkin_LIBRARIES})
+
+# voxel dome
+add_executable(voxel_dome_generator_node src/voxel_dome_generator_node.cpp)
+target_link_libraries(voxel_dome_generator_node ${catkin_LIBRARIES})
