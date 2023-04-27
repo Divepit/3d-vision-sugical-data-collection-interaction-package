@@ -250,3 +250,4 @@ target_link_libraries(flying_cube_node ${catkin_LIBRARIES})
 # voxel dome
 add_executable(voxel_dome_generator_node src/voxel_dome_generator_node.cpp)
 target_link_libraries(voxel_dome_generator_node ${catkin_LIBRARIES})
+
