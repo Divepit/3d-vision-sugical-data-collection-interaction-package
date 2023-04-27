@@ -73,11 +73,11 @@ Adjust the `x`, `y`, and `z` values as needed.
 
   The service should respond with a success message, indicating that the target coordinate has been updated.
 
-## Voxel Dome Generator
+# Voxel Dome Generator
 
 The Voxel Dome Generator is a ROS node that generates a half-dome filled with voxels in RViz. The dome's position, radius, and voxel count can be configured using a ROS service.
 
-# Service
+## Update Voxel Dome Service
 
 The node provides a service named /update_voxel_dome that allows you to update the parameters of the voxel dome. The service takes the following arguments:
 
@@ -87,7 +87,7 @@ The node provides a service named /update_voxel_dome that allows you to update t
 
 The service returns a boolean success indicating if the operation was successful and a message providing additional information about the result.
 
-# Usage
+### Usage
 
 After starting the Voxel Dome Generator node, you can call the /update_voxel_dome service using the rosservice command-line tool. Here's an example:
 
@@ -102,6 +102,7 @@ This command updates the voxel dome's radius to `2.0`, the number of voxels to `
 
 You can adjust these values as needed to generate a voxel dome with the desired size and density.
 
+## Update Obstacles Service
 
 To call the `/update_obstacles` service, use the following command in the terminal:
 
