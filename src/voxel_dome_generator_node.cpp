@@ -4,18 +4,20 @@
 #include <geometry_msgs/TransformStamped.h>
 #include <sdc_interaction/UpdateVoxelDome.h> 
 #include <sdc_interaction/UpdateObstacles.h> 
-#include <sdc_interaction/ExecuteObservingPath.h>
+#include <sdc_interaction/ExecuteOberservingPath.h>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <functional>
 
 
 // Global variables
+
 visualization_msgs::Marker marker;
 ros::Publisher marker_pub;
 double radius = 0.7;
 int voxel_count = 30000;
 double scaling_factor = 0.4;
+ros::ServiceClient client;
 
 geometry_msgs::Point root_position;
 std::vector<geometry_msgs::Point> obstacle_centers;
@@ -23,6 +25,7 @@ std::vector<double> obstacle_radii;
 geometry_msgs::Point target_position;
 
 std::string camera_frame_name = "camera_coordinate_system";
+sdc_interaction::ExecuteOberservingPath srv;
 
 
 // Struct for defining obstacles
@@ -189,9 +192,6 @@ void timerCallback(const ros::TimerEvent&, tf2_ros::Buffer &tf_buffer) {
                     } else {
                         marker.colors.push_back(green);
 
-                        // Add the non-occluded point to the vector
-                        non_occluded_points.push_back(p);
-
                         // Calculate Euclidean distance to the camera position
                         double distance_to_camera = euclideanDistance(camera_position, p);
 
@@ -208,16 +208,15 @@ void timerCallback(const ros::TimerEvent&, tf2_ros::Buffer &tf_buffer) {
         }
     }
 
-    sdc_interaction::ExecuteObservingPath srv;
     srv.request.input_point.x = closest_point.x;
     srv.request.input_point.y = closest_point.y;
     srv.request.input_point.z = closest_point.z;
+    
+        // Call the service after the marker is published
     if (client.call(srv)) {
-        // Handle the service response here, if needed
         ROS_INFO("Service call succeeded.");
     } else {
         ROS_ERROR("Failed to call service /execute_observing_path");
-        return 1;
     }
 
     // Initialize the tf buffer and listener
@@ -262,10 +261,11 @@ int main(int argc, char** argv) {
 
     ros::Subscriber target_coordinates_sub = nh.subscribe("target_coordinates", 10, targetPositionCallback);
 
-    os::ServiceClient client = nh.serviceClient<sdc_interaction::ExecuteObservingPath>("/execute_observing_path");
+    client = nh.serviceClient<sdc_interaction::ExecuteOberservingPath>("/execute_observing_path");
+
 
     // Create a timer to update the marker
-    ros::Timer timer = nh.createTimer(ros::Duration(1), std::bind(timerCallback, std::placeholders::_1, std::ref(tf_buffer)));
+    ros::Timer timer = nh.createTimer(ros::Duration(5), std::bind(timerCallback, std::placeholders::_1, std::ref(tf_buffer)));
 
     // Handle callbacks using ros::spin()
     ros::spin();
