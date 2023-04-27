@@ -81,9 +81,9 @@ The Voxel Dome Generator is a ROS node that generates a half-dome filled with vo
 
 The node provides a service named /update_voxel_dome that allows you to update the parameters of the voxel dome. The service takes the following arguments:
 
-* radius (float64): The radius of the half-dome.
-* voxel_count (int32): The number of voxels filling the half-dome.
-* scaling_factor (float64): A factor to scale the size of the individual voxels. A value less than 1.0 will create space between the voxels.
+* `radius` (float64): The radius of the half-dome.
+* `voxel_count` (int32): The number of voxels filling the half-dome.
+* `scaling_factor` (float64): A factor to scale the size of the individual voxels. A value less than `1.0` will create space between the voxels.
 
 The service returns a boolean success indicating if the operation was successful and a message providing additional information about the result.
 
@@ -98,6 +98,32 @@ scaling_factor: 0.9"
 
 ```
 
-This command updates the voxel dome's radius to 2.0, the number of voxels to 200, and sets the scaling factor to 0.9, which will result in smaller voxels with more space between them.
+This command updates the voxel dome's radius to `2.0`, the number of voxels to `200`, and sets the scaling factor to `0.9`, which will result in smaller voxels with more space between them.
 
 You can adjust these values as needed to generate a voxel dome with the desired size and density.
+
+
+To call the `/update_obstacles` service, use the following command in the terminal:
+
+```bash
+
+rosservice call /update_obstacles "obstacle_centers: [{{center1}}, {{center2}}, ...]
+obstacle_radii: [{{radius1}}, {{radius2}}, ...]"
+```
+
+Replace the placeholders with the actual values:
+
+  `{{center1}}, {{center2}}, ...`: The x, y, and z coordinates of the obstacle centers. Each center should be formatted as `{x: VALUE, y: VALUE, z: VALUE}`.
+  `{{radius1}}, {{radius2}}, ...`: The radii of the obstacles.
+
+Example
+
+Here is an example of how to call the `/update_obstacles` service with two obstacles:
+
+``` bash
+
+rosservice call /update_obstacles "obstacle_centers: [{x: 1.0, y: 1.0, z: 1.0}, {x: 2.0, y: 2.0, z: 2.0}]
+obstacle_radii: [0.5, 0.7]"
+```
+
+In this example, there are two obstacles with centers at `(1.0, 1.0, 1.0)` and `(2.0, 2.0, 2.0)` and radii of `0.5` and `0.7`, respectively.
