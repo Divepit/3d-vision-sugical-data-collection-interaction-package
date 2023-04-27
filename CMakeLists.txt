@@ -69,6 +69,7 @@ add_service_files(
   ExecuteOberservingPath.srv
   ChangeTargetCoordinate.srv
   UpdateVoxelDome.srv
+  UpdateObstacles.srv
   )
 
 ## Generate actions in the 'action' folder
