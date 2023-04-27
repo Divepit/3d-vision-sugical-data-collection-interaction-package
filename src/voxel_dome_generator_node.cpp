@@ -12,9 +12,9 @@
 // Global variables
 visualization_msgs::Marker marker;
 ros::Publisher marker_pub;
-double radius = 1.0;
-int voxel_count = 100;
-double scaling_factor = 0.8;
+double radius = 0.7;
+int voxel_count = 30000;
+double scaling_factor = 0.4;
 
 geometry_msgs::Point root_position;
 std::vector<geometry_msgs::Point> obstacle_centers;
@@ -165,17 +165,13 @@ void timerCallback(const ros::TimerEvent&, tf2_ros::Buffer &tf_buffer) {
                 double dist = std::sqrt(x * x + y * y + z * z);
                 if (dist <= radius) {
                     geometry_msgs::Point p;
-                    geometry_msgs::Point p_camera;
 
                     p.x = root_position.x + x;
                     p.y = root_position.y + y;
                     p.z = root_position.z + z;
-                    p_camera.x = camera_position.x + x;
-                    p_camera.y = camera_position.y + y;
-                    p_camera.z = camera_position.z + z;
 
                     // Check if the voxel is occluded or not and set the color accordingly
-                    bool occluded = is_target_occluded(p_camera, target_position, obstacles);
+                    bool occluded = is_target_occluded(p, target_position, obstacles);
                     if (occluded) {
                         marker.colors.push_back(red);
                     } else {
@@ -226,6 +222,8 @@ int main(int argc, char** argv) {
     // Advertise the service
     ros::ServiceServer voxeldome_service = nh.advertiseService("update_voxel_dome", updateVoxelDome);
     ros::ServiceServer obstacle_service = nh.advertiseService("update_obstacles", updateObstacles);
+
+    ros::Subscriber target_coordinates_sub = nh.subscribe("target_coordinates", 10, targetPositionCallback);
 
     // Create a timer to update the marker
     ros::Timer timer = nh.createTimer(ros::Duration(1), std::bind(timerCallback, std::placeholders::_1, std::ref(tf_buffer)));
