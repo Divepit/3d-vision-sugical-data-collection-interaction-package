@@ -29,15 +29,6 @@ bool execute_observing_path(sdc_interaction::ExecuteOberservingPath::Request &re
     // <---- Calculate Camera Pose
     double x_c, y_c, z_c;
 
-    // // Hardcode Target Position
-    // observable_target_x = 1.0;
-    // observable_target_y = 0.0;
-    // observable_target_z = 0.75;
-
-    // ROS_INFO("observable_target_x: %f", observable_target_x);
-    // ROS_INFO("observable_target_y: %f", observable_target_y);
-    // ROS_INFO("observable_target_z: %f", observable_target_z);
-
     // Read desired camera pose from request
     x_c = req.input_point.x;
     y_c = req.input_point.y;
