@@ -5,13 +5,9 @@
 #include <visualization_msgs/Marker.h>
 
 geometry_msgs::Point target_coordinate;
-geometry_msgs::Point obstacle_coordinate;
 visualization_msgs::Marker target_marker;
-visualization_msgs::Marker obstacle_marker;
 ros::Publisher target_marker_pub;
-ros::Publisher obstacle_marker_pub;
 ros::Publisher target_coordinate_pub;
-ros::Publisher obstacle_coordinate_pub;
 
 
 bool change_target_coordinate(sdc_interaction::ChangeTargetCoordinate::Request &req,
@@ -50,35 +46,6 @@ void timer_callback(const ros::TimerEvent&){
 
     // Publish the target target_marker
     target_marker_pub.publish(target_marker);
-
-
-    // Publish hardcoded obstacle
-    // Publish target coordinates
-    obstacle_coordinate_pub.publish(obstacle_coordinate);
-
-    // Marker
-    // Set target_marker properties
-    obstacle_marker.header.frame_id = "root";
-    obstacle_marker.id = 101;    
-    obstacle_marker.type = visualization_msgs::Marker::SPHERE;
-    obstacle_marker.action = visualization_msgs::Marker::ADD;
-    obstacle_marker.scale.x = 0.5;
-    obstacle_marker.scale.y = 0.5;
-    obstacle_marker.scale.z = 0.5;
-    obstacle_marker.color.r = 1.0;
-    obstacle_marker.color.g = 0.0;
-    obstacle_marker.color.b = 0.0;
-    obstacle_marker.color.a = 1.0;
-    obstacle_marker.pose.position.x = obstacle_coordinate.x;
-    obstacle_marker.pose.position.y = obstacle_coordinate.y;
-    obstacle_marker.pose.position.z = obstacle_coordinate.z;
-    obstacle_marker.pose.orientation.x = 0.0;
-    obstacle_marker.pose.orientation.y = 0.0;
-    obstacle_marker.pose.orientation.z = 0.0;
-    obstacle_marker.pose.orientation.w = 1.0;
-
-    // Publish the obstacle obstacle_marker
-    obstacle_marker_pub.publish(obstacle_marker);
 }
 
 int main(int argc, char **argv)
@@ -92,9 +59,6 @@ int main(int argc, char **argv)
     // Create a publisher for the target_coordinates topic
     target_coordinate_pub = nh.advertise<geometry_msgs::Point>("target_coordinates", 10);
 
-    // Create a publisher for the target_coordinates topic
-    obstacle_coordinate_pub = nh.advertise<geometry_msgs::Point>("obstacle_coordinates", 10);
-
     // Create a service server for changing the target coordinate
     ros::ServiceServer service = nh.advertiseService("change_target_coordinate", change_target_coordinate);
 
@@ -104,18 +68,10 @@ int main(int argc, char **argv)
     // Create a publisher for the target target_marker
     target_marker_pub = nh.advertise<visualization_msgs::Marker>("target_marker", 1);
 
-    // Create a publisher for the obstacle obstacle_marker
-    obstacle_marker_pub = nh.advertise<visualization_msgs::Marker>("obstacle_marker", 1);
-
     // Set the initial target position
-    target_coordinate.x = 0;
+    target_coordinate.x = 4;
     target_coordinate.y = 0;
-    target_coordinate.z = 5;
-
-    // Set initial obstacle position
-    obstacle_coordinate.x = 2;
-    obstacle_coordinate.y = 0;
-    obstacle_coordinate.z = 1;
+    target_coordinate.z = 1;
 
     ros::Timer timer = nh.createTimer(ros::Duration(0.1), timer_callback);   
 

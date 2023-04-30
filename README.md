@@ -65,8 +65,8 @@ Replace `noetic` with your installed ROS version (e.g., `melodic`, `noetic`).
 
 To call the `change_target_coordinate` service and update the target coordinate, use the following command:
    
-```sh
-rosservice call /change_target_coordinate "{new_coordinate: {x: 1.0, y: 2.0, z: 3.0}}"
+```bash
+rosservice call /change_target_coordinate "{new_coordinate: {x: 4.0, y: 0.0, z: 1.75}}"
 ```
 
 Adjust the `x`, `y`, and `z` values as needed.
@@ -95,41 +95,11 @@ After starting the Voxel Dome Generator node, you can call the /update_voxel_dom
 rosservice call /update_voxel_dome "radius: 2.0
 voxel_count: 200
 scaling_factor: 0.9"
-
 ```
 
 This command updates the voxel dome's radius to `2.0`, the number of voxels to `200`, and sets the scaling factor to `0.9`, which will result in smaller voxels with more space between them.
 
 You can adjust these values as needed to generate a voxel dome with the desired size and density.
-
-## Update Obstacles Service
-
-To call the `/update_obstacles` service, use the following command in the terminal:
-
-```bash
-
-rosservice call /update_obstacles "obstacle_centers: [{{center1}}, {{center2}}, ...]
-obstacle_radii: [{{radius1}}, {{radius2}}, ...]"
-```
-
-Replace the placeholders with the actual values:
-
-  `{{center1}}, {{center2}}, ...`: The x, y, and z coordinates of the obstacle centers. Each center should be formatted as `{x: VALUE, y: VALUE, z: VALUE}`.
-  `{{radius1}}, {{radius2}}, ...`: The radii of the obstacles.
-
-Example
-
-Here is an example of how to call the `/update_obstacles` service with two obstacles:
-
-``` bash
-
-rosservice call /update_obstacles "obstacle_centers: [{x: 1.0, y: 1.0, z: 1.0}, {x: 2.0, y: 2.0, z: 2.0}]
-obstacle_radii: [0.5, 0.7]"
-```
-
-In this example, there are two obstacles with centers at `(1.0, 1.0, 1.0)` and `(2.0, 2.0, 2.0)` and radii of `0.5` and `0.7`, respectively.
-
-
 
 # Sphere Obstacle Publisher Node
 
@@ -137,11 +107,10 @@ In this example, there are two obstacles with centers at `(1.0, 1.0, 1.0)` and `
 To change the obstacles, call the `change_obstacles` service with a list of `Sphere` messages. Here's an example of how to call the service using the `rosservice` command-line tool:
 
 ``` bash
-
-$ rosservice call /change_obstacles "obstacles: {spheres: [{center: {x: 1.0, y: 2.0, z: 3.0}, radius: 1.5}, {center: {x: 4.0, y: 5.0, z: 6.0}, radius: 2.0}]}"
+rosservice call /change_obstacles "obstacles: {spheres: [{center: {x: 2.0, y: 0.0, z: 1.0}, radius: 0.125}, {center: {x: 2.0, y: 1.0, z: 1.0}, radius: 0.125}]}"
 ```
 
-This command updates the list of obstacles with two spheres. The first sphere has its center at `(1.0, 2.0, 3.0)` and a radius of `1.5`. The second sphere has its center at `(4.0, 5.0, 6.0)` and a radius of `2.0`.
+This command updates the list of obstacles with two spheres. The first sphere has its center at `(2.0, 0.0, 1.0)` and a radius of `0.125`. The second sphere has its center at `(4.0, 5.0, 6.0)` and a radius of `0.125`.
 
 You can also change the obstacles programmatically in another ROS node by creating a client for the `change_obstacles` service and sending the new list of spheres.
 
