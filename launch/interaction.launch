@@ -7,4 +7,7 @@
   </node>
   <node launch-prefix="bash -c 'sleep 5; $0 $@'"  name="voxel_dome_generator" pkg="sdc_interaction" type="voxel_dome_generator_node" output="screen">
   </node>
+  <node name="sphere_obstacles_publisher" pkg="sdc_interaction" type="sphere_obstacles_publisher_node" output="screen">
+  </node>
+
 </launch>

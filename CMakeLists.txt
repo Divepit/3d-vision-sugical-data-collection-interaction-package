@@ -57,11 +57,11 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+  FILES
+  Sphere.msg
+  SphereList.msg
+)
 
 # Generate services in the 'srv' folder
 add_service_files(
@@ -70,6 +70,7 @@ add_service_files(
   ChangeTargetCoordinate.srv
   UpdateVoxelDome.srv
   UpdateObstacles.srv
+  ChangeObstacles.srv
   )
 
 ## Generate actions in the 'action' folder
@@ -84,6 +85,7 @@ generate_messages(
   DEPENDENCIES
   geometry_msgs
   std_msgs
+  sdc_interaction
 )
 
 ################################################
@@ -118,7 +120,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES sdc_interaction
- CATKIN_DEPENDS geometry_msgs message_runtime gazebo_ros std_msgs
+ CATKIN_DEPENDS roscpp geometry_msgs message_runtime gazebo_ros std_msgs
 #  DEPENDS system_lib
 )
 
@@ -251,3 +253,9 @@ target_link_libraries(flying_cube_node ${catkin_LIBRARIES})
 add_executable(voxel_dome_generator_node src/voxel_dome_generator_node.cpp)
 target_link_libraries(voxel_dome_generator_node ${catkin_LIBRARIES})
 
+
+add_executable(sphere_obstacles_publisher_node src/sphere_obstacles_publisher_node.cpp)
+add_dependencies(sphere_obstacles_publisher_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(sphere_obstacles_publisher_node
+  ${catkin_LIBRARIES}
+)

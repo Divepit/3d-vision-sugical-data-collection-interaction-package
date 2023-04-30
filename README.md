@@ -128,3 +128,20 @@ obstacle_radii: [0.5, 0.7]"
 ```
 
 In this example, there are two obstacles with centers at `(1.0, 1.0, 1.0)` and `(2.0, 2.0, 2.0)` and radii of `0.5` and `0.7`, respectively.
+
+
+
+# Sphere Obstacle Publisher Node
+
+## Changing obstacles
+To change the obstacles, call the `change_obstacles` service with a list of `Sphere` messages. Here's an example of how to call the service using the `rosservice` command-line tool:
+
+``` bash
+
+$ rosservice call /change_obstacles "obstacles: {spheres: [{center: {x: 1.0, y: 2.0, z: 3.0}, radius: 1.5}, {center: {x: 4.0, y: 5.0, z: 6.0}, radius: 2.0}]}"
+```
+
+This command updates the list of obstacles with two spheres. The first sphere has its center at `(1.0, 2.0, 3.0)` and a radius of `1.5`. The second sphere has its center at `(4.0, 5.0, 6.0)` and a radius of `2.0`.
+
+You can also change the obstacles programmatically in another ROS node by creating a client for the `change_obstacles` service and sending the new list of spheres.
+
