@@ -255,12 +255,12 @@ int main(int argc, char** argv) {
     marker.lifetime = ros::Duration();
 
     // Advertise the marker publisher
-    marker_pub = nh.advertise<visualization_msgs::Marker>("voxel_dome_marker", 1);
+    marker_pub = nh.advertise<visualization_msgs::Marker>("voxel_dome_marker", 0.5);
 
     ros::ServiceServer voxeldome_service = nh.advertiseService("update_voxel_dome", updateVoxelDome);
 
-    ros::Subscriber obstacle_locations_sub = nh.subscribe("/obstacle_locations", 10, obstacleLocationsCallback);
-    ros::Subscriber target_coordinates_sub = nh.subscribe("target_coordinates", 10, targetPositionCallback);
+    ros::Subscriber obstacle_locations_sub = nh.subscribe("/obstacle_locations", 0.5, obstacleLocationsCallback);
+    ros::Subscriber target_coordinates_sub = nh.subscribe("target_coordinates", 0.5, targetPositionCallback);
 
 
     client = nh.serviceClient<sdc_interaction::ExecuteOberservingPath>("/execute_observing_path");
