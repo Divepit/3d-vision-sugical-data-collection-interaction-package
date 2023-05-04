@@ -27,7 +27,7 @@ geometry_msgs::Point target_position;
 std::string camera_frame_name = "camera_coordinate_system";
 sdc_interaction::ExecuteOberservingPath srv;
 
-bool change_flag = false;
+bool change_flag = true;
 
 
 geometry_msgs::Point getCameraPosition(tf2_ros::Buffer &tf_buffer) {

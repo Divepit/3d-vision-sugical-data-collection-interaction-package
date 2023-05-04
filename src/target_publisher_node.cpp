@@ -3,22 +3,84 @@
 #include <sdc_interaction/ChangeTargetCoordinate.h>
 #include <std_srvs/Empty.h>
 #include <visualization_msgs/Marker.h>
+#include <gazebo_msgs/SpawnModel.h>
+#include <gazebo_msgs/DeleteModel.h>
+
 
 geometry_msgs::Point target_coordinate;
 visualization_msgs::Marker target_marker;
 ros::Publisher target_marker_pub;
 ros::Publisher target_coordinate_pub;
+bool position_changed = true;
+geometry_msgs::Point previous_coordinate;
 
+
+void visualizeGazebo(const geometry_msgs::Point &target_coordinate)
+{
+    static ros::NodeHandle nh;
+    static ros::ServiceClient spawn_model_client = nh.serviceClient<gazebo_msgs::SpawnModel>("gazebo/spawn_sdf_model");
+    static ros::ServiceClient delete_model_client = nh.serviceClient<gazebo_msgs::DeleteModel>("gazebo/delete_model");
+
+    // Delete the previous target model in Gazebo
+    std::string target_name = "target_gazebo";
+    gazebo_msgs::DeleteModel delete_model_srv;
+    delete_model_srv.request.model_name = target_name;
+    delete_model_client.call(delete_model_srv);
+
+    // Spawn the new target model in Gazebo
+    gazebo_msgs::SpawnModel spawn_model_srv;
+    spawn_model_srv.request.model_name = target_name;
+    spawn_model_srv.request.model_xml =
+        "<sdf version='1.6'>"
+        "  <model name='" + target_name + "'>"
+        "    <link name='link'>"
+        "      <gravity>false</gravity>"
+        "      <self_collide>false</self_collide>"
+        "      <visual name='visual'>"
+        "        <geometry>"
+        "          <sphere>"
+        "            <radius>0.25</radius>"
+        "          </sphere>"
+        "        </geometry>"
+        "        <material>"
+        "          <ambient>0.0 0.0 1.0 1.0</ambient>"
+        "          <diffuse>0.0 0.0 1.0 1.0</diffuse>"
+        "        </material>"
+        "      </visual>"
+        "    </link>"
+        "  </model>"
+        "</sdf>";
+    spawn_model_srv.request.reference_frame = "root";
+
+    geometry_msgs::Pose initial_pose;
+    initial_pose.position = target_coordinate;
+    initial_pose.orientation.x = 0.0;
+    initial_pose.orientation.y = 0.0;
+    initial_pose.orientation.z = 0.0;
+    initial_pose.orientation.w = 1.0;
+
+    spawn_model_srv.request.initial_pose = initial_pose;
+
+    if (!spawn_model_client.call(spawn_model_srv))
+    {
+        ROS_ERROR_STREAM("Failed to spawn target model '" << target_name << "' in Gazebo.");
+    }
+}
 
 bool change_target_coordinate(sdc_interaction::ChangeTargetCoordinate::Request &req,
                               sdc_interaction::ChangeTargetCoordinate::Response &res)
 {
-    target_coordinate = req.new_coordinate;
-    ROS_INFO("New target coordinate: (%f, %f, %f)", target_coordinate.x, target_coordinate.y, target_coordinate.z);
+    if (target_coordinate != req.new_coordinate)
+    {
+        target_coordinate = req.new_coordinate;
+        ROS_INFO("New target coordinate: (%f, %f, %f)", target_coordinate.x, target_coordinate.y, target_coordinate.z);
+        position_changed = true;
+    }
 
     res.success = true;
     return true;
 }
+
 
 void timer_callback(const ros::TimerEvent&){
     // Publish target coordinates
@@ -46,6 +108,14 @@ void timer_callback(const ros::TimerEvent&){
 
     // Publish the target target_marker
     target_marker_pub.publish(target_marker);
+
+    // Visualize the target in Gazebo only if the position has changed
+    if (position_changed)
+    {
+        visualizeGazebo(target_coordinate);
+        previous_coordinate = target_coordinate;
+        position_changed = false;
+    }
 }
 
 int main(int argc, char **argv)
