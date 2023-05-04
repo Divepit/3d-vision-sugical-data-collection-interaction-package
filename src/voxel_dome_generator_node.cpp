@@ -33,7 +33,7 @@ bool change_flag = false;
 geometry_msgs::Point getCameraPosition(tf2_ros::Buffer &tf_buffer) {
     geometry_msgs::Point camera_position;
     try {
-        geometry_msgs::TransformStamped transform_camera_to_world = tf_buffer.lookupTransform("world", camera_frame_name, ros::Time(0), ros::Duration(0.1));
+        geometry_msgs::TransformStamped transform_camera_to_world = tf_buffer.lookupTransform("root", camera_frame_name, ros::Time(0), ros::Duration(0.1));
 
         camera_position.x = transform_camera_to_world.transform.translation.x;
         camera_position.y = transform_camera_to_world.transform.translation.y;

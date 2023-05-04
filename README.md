@@ -16,6 +16,19 @@ To run all nodes and services with the kinova mrirac library combined, launch th
 roslaunch sdc_interaction interaction.launch 
 ```
 
+To easily call services, it is easiest if you use rqt. To install rqt use the following command:
+
+```sh
+sudo apt-get install ros-noetic-rqt-common-plugins
+```
+
+In order to easily call services, first start the whole pipeline and once the rosmaster is running, open rqt as follows:
+
+```sh
+rosrun rqt_service_caller rqt_service_caller
+```
+
+
 # Running separate nodes
 
 This package contains two nodes, one to execute a trajectory and bring the end effector to a desired location while looking at the target and a second node that lets us select a new coordinate for the target.
