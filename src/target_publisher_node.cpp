@@ -13,19 +13,24 @@ ros::Publisher target_marker_pub;
 ros::Publisher target_coordinate_pub;
 bool position_changed = true;
 geometry_msgs::Point previous_coordinate;
- 
+std::string target_name;
 
-void visualizeGazebo(const geometry_msgs::Point &target_coordinate)
+
+void visualizeGazeboDelete(const geometry_msgs::Point &target_coordinate)
 {
     static ros::NodeHandle nh;
-    static ros::ServiceClient spawn_model_client = nh.serviceClient<gazebo_msgs::SpawnModel>("gazebo/spawn_sdf_model");
     static ros::ServiceClient delete_model_client = nh.serviceClient<gazebo_msgs::DeleteModel>("gazebo/delete_model");
 
     // Delete the previous target model in Gazebo
-    std::string target_name = "target_gazebo";
     gazebo_msgs::DeleteModel delete_model_srv;
     delete_model_srv.request.model_name = target_name;
     delete_model_client.call(delete_model_srv);
+}
+
+void visualizeGazeboSpawn(const geometry_msgs::Point &target_coordinate)
+{
+    static ros::NodeHandle nh;
+    static ros::ServiceClient spawn_model_client = nh.serviceClient<gazebo_msgs::SpawnModel>("gazebo/spawn_sdf_model");
 
     // Spawn the new target model in Gazebo
     gazebo_msgs::SpawnModel spawn_model_srv;
@@ -65,6 +70,12 @@ void visualizeGazebo(const geometry_msgs::Point &target_coordinate)
     {
         ROS_ERROR_STREAM("Failed to spawn target model '" << target_name << "' in Gazebo.");
     }
+}
+
+void visualizeGazebo(const geometry_msgs::Point &target_coordinate)
+{
+    visualizeGazeboDelete(target_coordinate);
+    visualizeGazeboSpawn(target_coordinate);
 }
 
 bool change_target_coordinate(sdc_interaction::ChangeTargetCoordinate::Request &req,
@@ -120,6 +131,9 @@ void timer_callback(const ros::TimerEvent&){
 
 int main(int argc, char **argv)
 {
+    // Set target gazebo object name
+    target_name = "target_gazebo";
+
     // Initialize the ROS node
     ros::init(argc, argv, "target_publisher_node");
 
@@ -142,6 +156,9 @@ int main(int argc, char **argv)
     target_coordinate.x = 4;
     target_coordinate.y = 0;
     target_coordinate.z = 1;
+
+    // Init gazebo target
+    visualizeGazeboSpawn(target_coordinate);
 
     ros::Timer timer = nh.createTimer(ros::Duration(0.1), timer_callback);   
 
