@@ -11,6 +11,8 @@
 #include <sdc_interaction/SphereList.h>
 #include <sdc_interaction/Sphere.h>
 
+// Topic for obstacle locations - set to "/obstacle_locations" for ground truth
+std::string obstacle_topic = "/obstacle_centers";
 
 // Global variables
 visualization_msgs::Marker marker;
@@ -27,7 +29,7 @@ geometry_msgs::Point target_position;
 std::string camera_frame_name = "camera_coordinate_system";
 sdc_interaction::ExecuteOberservingPath srv;
 
-bool change_flag = false;
+bool change_flag = true;
 
 
 geometry_msgs::Point getCameraPosition(tf2_ros::Buffer &tf_buffer) {
@@ -259,7 +261,7 @@ int main(int argc, char** argv) {
 
     ros::ServiceServer voxeldome_service = nh.advertiseService("update_voxel_dome", updateVoxelDome);
 
-    ros::Subscriber obstacle_locations_sub = nh.subscribe("/obstacle_locations", 0.5, obstacleLocationsCallback);
+    ros::Subscriber obstacle_locations_sub = nh.subscribe(obstacle_topic, 0.5, obstacleLocationsCallback);
     ros::Subscriber target_coordinates_sub = nh.subscribe("target_coordinates", 0.5, targetPositionCallback);
 
 
