@@ -13,7 +13,7 @@ ros::Publisher target_marker_pub;
 ros::Publisher target_coordinate_pub;
 bool position_changed = true;
 geometry_msgs::Point previous_coordinate;
-
+ 
 
 void visualizeGazebo(const geometry_msgs::Point &target_coordinate)
 {
