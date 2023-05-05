@@ -28,6 +28,26 @@ In order to easily call services, first start the whole pipeline and once the ro
 rosrun rqt_service_caller rqt_service_caller
 ```
 
+# Troubleshooting
+
+If an error like the following appears when running `catkin build`:
+
+```bash
+fatal error: sdc_interaction/UpdateVoxelDome.h: No such file or directory
+    5 | #include <sdc_interaction/UpdateVoxelDome.h>
+
+```
+
+It is necessary to go into the file `CMakeLists.txt` and comment out the following two lines:
+
+```cmake
+add_executable(voxel_dome_generator_node src/voxel_dome_generator_node.cpp)
+target_link_libraries(voxel_dome_generator_node ${catkin_LIBRARIES})
+
+```
+
+Once they are commented out, run `catkin build` again. If it is successful, uncomment the two lines again and re-run `catkin build`. There was no better fix found for this so far.
+
 
 # Running separate nodes
 
