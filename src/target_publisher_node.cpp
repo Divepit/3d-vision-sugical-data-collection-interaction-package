@@ -39,7 +39,7 @@ void visualizeGazebo(const geometry_msgs::Point &target_coordinate)
         "      <visual name='visual'>"
         "        <geometry>"
         "          <sphere>"
-        "            <radius>0.25</radius>"
+        "            <radius>0.05</radius>"
         "          </sphere>"
         "        </geometry>"
         "        <material>"
