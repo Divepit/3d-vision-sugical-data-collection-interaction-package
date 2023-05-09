@@ -46,7 +46,13 @@ class SphereObstaclesPublisher
 {
 public:
   SphereObstaclesPublisher()
-  {
+  { 
+    // Read in config params
+    if (!nh_.getParam("use_dynamic_obstacle", use_dynamic_obstacle))
+    {
+        ROS_ERROR("[sphere_obstacles_publisher_node] Failed to get param 'use_dynamic_obstacle'");
+    }
+
     publisher_ = nh_.advertise<sdc_interaction::SphereList>("obstacle_locations", 1);
     marker_publisher_ = nh_.advertise<visualization_msgs::MarkerArray>("obstacle_markers", 1);
     service_ = nh_.advertiseService("change_obstacles", &SphereObstaclesPublisher::changeObstacles, this);
@@ -57,7 +63,10 @@ public:
     publisher_.publish(obstacles_);
     visualization_msgs::MarkerArray marker_array = createObstacleMarkers(obstacles_);
     marker_publisher_.publish(marker_array);
-    publishGazebo();
+    // Only use this gazebo publisher in case we do not use the dynamic obstacle
+    if(!use_dynamic_obstacle){
+      publishGazebo();
+    }
   }
 
   void publishGazebo()
@@ -70,8 +79,6 @@ public:
     // Delete previous sphere obstacles in Gazebo
     ros::ServiceClient delete_model_client = nh_.serviceClient<gazebo_msgs::DeleteModel>("gazebo/delete_model");
     int idx = 0;
-
-    ROS_INFO_STREAM("Number of spheres in old obstacles: " << old_obstacles_.spheres.size());
 
     for (const auto& sphere : old_obstacles_.spheres)
     {
@@ -153,6 +160,7 @@ private:
   sdc_interaction::SphereList obstacles_;
   sdc_interaction::SphereList old_obstacles_;
   bool obstacles_updated_ = false;
+  bool use_dynamic_obstacle;
 };
 
 int main(int argc, char** argv)

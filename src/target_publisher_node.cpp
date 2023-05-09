@@ -3,8 +3,9 @@
 #include <sdc_interaction/ChangeTargetCoordinate.h>
 #include <std_srvs/Empty.h>
 #include <visualization_msgs/Marker.h>
-#include <gazebo_msgs/SpawnModel.h>
-#include <gazebo_msgs/DeleteModel.h>
+// #include <gazebo_msgs/SpawnModel.h>
+// #include <gazebo_msgs/DeleteModel.h>
+#include <gazebo_msgs/SetModelState.h>
 
 
 geometry_msgs::Point target_coordinate;
@@ -14,68 +15,75 @@ ros::Publisher target_coordinate_pub;
 bool position_changed = true;
 geometry_msgs::Point previous_coordinate;
 std::string target_name;
+ros::ServiceClient client_gazebo;
+gazebo_msgs::SetModelState set_model_state_srv;
 
 
-void visualizeGazeboDelete(const geometry_msgs::Point &target_coordinate)
-{
-    static ros::NodeHandle nh;
-    static ros::ServiceClient delete_model_client = nh.serviceClient<gazebo_msgs::DeleteModel>("gazebo/delete_model");
+// void visualizeGazeboDelete(const geometry_msgs::Point &target_coordinate)
+// {
+//     static ros::NodeHandle nh;
+//     static ros::ServiceClient delete_model_client = nh.serviceClient<gazebo_msgs::DeleteModel>("gazebo/delete_model");
+//     // Delete the previous target model in Gazebo
+//     gazebo_msgs::DeleteModel delete_model_srv;
+//     delete_model_srv.request.model_name = target_name;
+//     delete_model_client.call(delete_model_srv);
+// }
 
-    // Delete the previous target model in Gazebo
-    gazebo_msgs::DeleteModel delete_model_srv;
-    delete_model_srv.request.model_name = target_name;
-    delete_model_client.call(delete_model_srv);
-}
-
-void visualizeGazeboSpawn(const geometry_msgs::Point &target_coordinate)
-{
-    static ros::NodeHandle nh;
-    static ros::ServiceClient spawn_model_client = nh.serviceClient<gazebo_msgs::SpawnModel>("gazebo/spawn_sdf_model");
-
-    // Spawn the new target model in Gazebo
-    gazebo_msgs::SpawnModel spawn_model_srv;
-    spawn_model_srv.request.model_name = target_name;
-    spawn_model_srv.request.model_xml =
-        "<sdf version='1.6'>"
-        "  <model name='" + target_name + "'>"
-        "    <link name='link'>"
-        "      <gravity>false</gravity>"
-        "      <self_collide>false</self_collide>"
-        "      <visual name='visual'>"
-        "        <geometry>"
-        "          <sphere>"
-        "            <radius>0.05</radius>"
-        "          </sphere>"
-        "        </geometry>"
-        "        <material>"
-        "          <ambient>0.0 0.0 1.0 1.0</ambient>"
-        "          <diffuse>0.0 0.0 1.0 1.0</diffuse>"
-        "        </material>"
-        "      </visual>"
-        "    </link>"
-        "  </model>"
-        "</sdf>";
-    spawn_model_srv.request.reference_frame = "root";
-
-    geometry_msgs::Pose initial_pose;
-    initial_pose.position = target_coordinate;
-    initial_pose.orientation.x = 0.0;
-    initial_pose.orientation.y = 0.0;
-    initial_pose.orientation.z = 0.0;
-    initial_pose.orientation.w = 1.0;
-
-    spawn_model_srv.request.initial_pose = initial_pose;
-
-    if (!spawn_model_client.call(spawn_model_srv))
-    {
-        ROS_ERROR_STREAM("Failed to spawn target model '" << target_name << "' in Gazebo.");
-    }
-}
+// void visualizeGazeboSpawn(const geometry_msgs::Point &target_coordinate){
+//     static ros::NodeHandle nh;
+//     static ros::ServiceClient spawn_model_client = nh.serviceClient<gazebo_msgs::SpawnModel>("gazebo/spawn_sdf_model");
+//     // Spawn the new target model in Gazebo
+//     gazebo_msgs::SpawnModel spawn_model_srv;
+//     spawn_model_srv.request.model_name = target_name;
+//     spawn_model_srv.request.model_xml =
+//         "<sdf version='1.6'>"
+//         "  <model name='" + target_name + "'>"
+//         "    <link name='link'>"
+//         "      <gravity>false</gravity>"
+//         "      <self_collide>false</self_collide>"
+//         "      <visual name='visual'>"
+//         "        <geometry>"
+//         "          <sphere>"
+//         "            <radius>0.05</radius>"
+//         "          </sphere>"
+//         "        </geometry>"
+//         "        <material>"
+//         "          <ambient>0.0 0.0 1.0 1.0</ambient>"
+//         "          <diffuse>0.0 0.0 1.0 1.0</diffuse>"
+//         "        </material>"
+//         "      </visual>"
+//         "    </link>"
+//         "  </model>"
+//         "</sdf>";
+//     spawn_model_srv.request.reference_frame = "root";
+//
+//     geometry_msgs::Pose initial_pose;
+//     initial_pose.position = target_coordinate;
+//     initial_pose.orientation.x = 0.0;
+//     initial_pose.orientation.y = 0.0;
+//     initial_pose.orientation.z = 0.0;
+//     initial_pose.orientation.w = 1.0;
+//
+//     spawn_model_srv.request.initial_pose = initial_pose;
+//
+//     if (!spawn_model_client.call(spawn_model_srv))
+//     {
+//         ROS_ERROR_STREAM("Failed to spawn target model '" << target_name << "' in Gazebo.");
+//     }
+// }
 
 void visualizeGazebo(const geometry_msgs::Point &target_coordinate)
 {
-    visualizeGazeboDelete(target_coordinate);
-    visualizeGazeboSpawn(target_coordinate);
+    // visualizeGazeboDelete(target_coordinate);
+    // visualizeGazeboSpawn(target_coordinate);
+    set_model_state_srv.request.model_state.pose.position.x = target_coordinate.x;
+    set_model_state_srv.request.model_state.pose.position.y = target_coordinate.y;
+    set_model_state_srv.request.model_state.pose.position.z = target_coordinate.z;
+
+    if (client_gazebo.call(set_model_state_srv)) {
+    } else {
+        ROS_ERROR("[target_publisher_node] Failed to call the set_model_state service.");
+    }
 }
 
 bool change_target_coordinate(sdc_interaction::ChangeTargetCoordinate::Request &req,
@@ -102,9 +110,9 @@ void timer_callback(const ros::TimerEvent&){
     target_marker.id = 100;    
     target_marker.type = visualization_msgs::Marker::SPHERE;
     target_marker.action = visualization_msgs::Marker::ADD;
-    target_marker.scale.x = 0.125;
-    target_marker.scale.y = 0.125;
-    target_marker.scale.z = 0.125;
+    target_marker.scale.x = 0.1;
+    target_marker.scale.y = 0.1;
+    target_marker.scale.z = 0.1;
     target_marker.color.r = 0.0;
     target_marker.color.g = 0.0;
     target_marker.color.b = 1.0;
@@ -149,6 +157,12 @@ int main(int argc, char **argv)
     // Create a client for the clear_octomap service
     ros::ServiceClient clear_octomap_client = nh.serviceClient<std_srvs::Empty>("/clear_octomap");
 
+    // Create a client to change the gazebo position of the target
+    client_gazebo = nh.serviceClient<gazebo_msgs::SetModelState>("/gazebo/set_model_state");
+
+    set_model_state_srv.request.model_state.model_name = "target_sphere";
+    set_model_state_srv.request.model_state.reference_frame = "world";
+
     // Create a publisher for the target target_marker
     target_marker_pub = nh.advertise<visualization_msgs::Marker>("target_marker", 1);
 
@@ -158,7 +172,7 @@ int main(int argc, char **argv)
     target_coordinate.z = 1;
 
     // Init gazebo target
-    visualizeGazeboSpawn(target_coordinate);
+    // visualizeGazeboSpawn(target_coordinate);
 
     ros::Timer timer = nh.createTimer(ros::Duration(0.1), timer_callback);   
 
