@@ -17,8 +17,8 @@ std::string obstacle_topic = "/obstacle_centers";
 // Global variables
 visualization_msgs::Marker marker;
 ros::Publisher marker_pub;
-double radius = 0.7;
-int voxel_count = 30000;
+double radius = 0.4;
+int voxel_count = 20000;
 double scaling_factor = 0.4;
 ros::ServiceClient client;
 
