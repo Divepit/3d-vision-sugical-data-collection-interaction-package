@@ -22,6 +22,9 @@ geometry_msgs::Point root_position;
 geometry_msgs::Point target_position;
 std::vector<sdc_interaction::Sphere> obstacles;
 sdc_interaction::ExecuteOberservingPath srv;
+tf2_ros::Buffer tf_buffer;
+
+bool is_target_occluded(geometry_msgs::Point origin, geometry_msgs::Point target, std::vector<sdc_interaction::Sphere> &obstacles);
 
 double radius = 0.4;
 int voxel_count = 20000;
@@ -77,7 +80,16 @@ void obstacleLocationsCallback(const sdc_interaction::SphereList::ConstPtr &msg)
         obstacles = msg->spheres;
 
         // Set the change_flag to true to indicate that the obstacles list has changed
-        change_flag = true;
+        // Set change flag to false, since updated.
+        geometry_msgs::Point camera_position = getCameraPosition(tf_buffer);
+        if (is_target_occluded(camera_position , target_position, obstacles))
+        {
+            change_flag = true;
+        }
+        else
+        {
+            change_flag = false;
+        }
     }
 }
 
@@ -101,7 +113,16 @@ bool updateVoxelDome(sdc_interaction::UpdateVoxelDome::Request &req,
     res.success = true;
     res.message = "Voxel dome parameters updated.";
 
-    return true;
+    // Set change flag to false, since updated.
+        geometry_msgs::Point camera_position = getCameraPosition(tf_buffer);
+        if (is_target_occluded(camera_position , target_position, obstacles))
+        {
+            change_flag = true;
+        }
+        else
+        {
+            change_flag = false;
+        }
 }
 
 bool is_target_occluded(geometry_msgs::Point origin, geometry_msgs::Point target, std::vector<sdc_interaction::Sphere> &obstacles)
@@ -252,8 +273,6 @@ void timerCallback(const ros::TimerEvent &, tf2_ros::Buffer &tf_buffer)
         marker.header.stamp = ros::Time::now();
         marker_pub.publish(marker);
 
-        // Set change flag to false, since updated.
-        change_flag = false;
     }
 }
 
@@ -263,7 +282,6 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
 
     // Initialize the tf buffer and listener
-    tf2_ros::Buffer tf_buffer;
     tf2_ros::TransformListener tf_listener(tf_buffer);
 
     // Root position (hardcoded)
