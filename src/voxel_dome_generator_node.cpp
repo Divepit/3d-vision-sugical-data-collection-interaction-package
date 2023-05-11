@@ -2,8 +2,8 @@
 #include <visualization_msgs/Marker.h>
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <geometry_msgs/TransformStamped.h>
-#include <sdc_interaction/UpdateVoxelDome.h> 
-#include <sdc_interaction/UpdateObstacles.h> 
+#include <sdc_interaction/UpdateVoxelDome.h>
+#include <sdc_interaction/UpdateObstacles.h>
 #include <sdc_interaction/ExecuteOberservingPath.h>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
@@ -13,43 +13,46 @@
 
 // Topic for obstacle locations - set to "/obstacle_locations" for ground truth
 std::string obstacle_topic = "/obstacle_centers";
+std::string camera_frame_name = "camera_coordinate_system";
 
 // Global variables
 visualization_msgs::Marker marker;
 ros::Publisher marker_pub;
+geometry_msgs::Point root_position;
+geometry_msgs::Point target_position;
+std::vector<sdc_interaction::Sphere> obstacles;
+sdc_interaction::ExecuteOberservingPath srv;
+
 double radius = 0.4;
 int voxel_count = 20000;
 double scaling_factor = 0.4;
-ros::ServiceClient client;
 
-geometry_msgs::Point root_position;
-std::vector<sdc_interaction::Sphere> obstacles;
-geometry_msgs::Point target_position;
-
-std::string camera_frame_name = "camera_coordinate_system";
-sdc_interaction::ExecuteOberservingPath srv;
+ros::ServiceClient execute_observing_path_client;
 
 bool change_flag = true;
 
-
-geometry_msgs::Point getCameraPosition(tf2_ros::Buffer &tf_buffer) {
+geometry_msgs::Point getCameraPosition(tf2_ros::Buffer &tf_buffer)
+{
     geometry_msgs::Point camera_position;
-    try {
+    try
+    {
         geometry_msgs::TransformStamped transform_camera_to_world = tf_buffer.lookupTransform("root", camera_frame_name, ros::Time(0), ros::Duration(0.1));
 
         camera_position.x = transform_camera_to_world.transform.translation.x;
         camera_position.y = transform_camera_to_world.transform.translation.y;
         camera_position.z = transform_camera_to_world.transform.translation.z;
-    } catch (tf2::TransformException &ex) {
+    }
+    catch (tf2::TransformException &ex)
+    {
         ROS_WARN("%s", ex.what());
     }
 
     return camera_position;
 }
 
-
 // New target position callback
-void targetPositionCallback(const geometry_msgs::Point::ConstPtr &msg) {
+void targetPositionCallback(const geometry_msgs::Point::ConstPtr &msg)
+{
     geometry_msgs::Point msg_pos = *msg;
 
     // Check if the new target position is different from the current one
@@ -65,7 +68,8 @@ void targetPositionCallback(const geometry_msgs::Point::ConstPtr &msg) {
     }
 }
 
-void obstacleLocationsCallback(const sdc_interaction::SphereList::ConstPtr &msg) {
+void obstacleLocationsCallback(const sdc_interaction::SphereList::ConstPtr &msg)
+{
     // Check if the new obstacle list is different from the current one
     if (obstacles != msg->spheres)
     {
@@ -77,7 +81,8 @@ void obstacleLocationsCallback(const sdc_interaction::SphereList::ConstPtr &msg)
     }
 }
 
-double euclideanDistance(const geometry_msgs::Point& point1, const geometry_msgs::Point& point2) {
+double euclideanDistance(const geometry_msgs::Point &point1, const geometry_msgs::Point &point2)
+{
     double dx = point1.x - point2.x;
     double dy = point1.y - point2.y;
     double dz = point1.z - point2.z;
@@ -87,7 +92,8 @@ double euclideanDistance(const geometry_msgs::Point& point1, const geometry_msgs
 
 // Service callback
 bool updateVoxelDome(sdc_interaction::UpdateVoxelDome::Request &req,
-                     sdc_interaction::UpdateVoxelDome::Response &res) {
+                     sdc_interaction::UpdateVoxelDome::Response &res)
+{
     radius = req.radius;
     voxel_count = req.voxel_count;
     scaling_factor = req.scaling_factor;
@@ -98,7 +104,8 @@ bool updateVoxelDome(sdc_interaction::UpdateVoxelDome::Request &req,
     return true;
 }
 
-bool is_target_occluded(geometry_msgs::Point origin, geometry_msgs::Point target, std::vector<sdc_interaction::Sphere> &obstacles) {
+bool is_target_occluded(geometry_msgs::Point origin, geometry_msgs::Point target, std::vector<sdc_interaction::Sphere> &obstacles)
+{
     geometry_msgs::Point ray_direction;
     ray_direction.x = target.x - origin.x;
     ray_direction.y = target.y - origin.y;
@@ -112,7 +119,8 @@ bool is_target_occluded(geometry_msgs::Point origin, geometry_msgs::Point target
     ray_direction.y /= ray_length;
     ray_direction.z /= ray_length;
 
-    for (const auto &obstacle : obstacles) {
+    for (const auto &obstacle : obstacles)
+    {
         geometry_msgs::Point origin_to_obstacle;
         origin_to_obstacle.x = obstacle.center.x - origin.x;
         origin_to_obstacle.y = obstacle.center.y - origin.y;
@@ -133,7 +141,8 @@ bool is_target_occluded(geometry_msgs::Point origin, geometry_msgs::Point target
             pow(origin_to_obstacle.y - closest_raypoint_to_obstacle.y, 2) +
             pow(origin_to_obstacle.z - closest_raypoint_to_obstacle.z, 2));
 
-        if (shortest_distance_ray_obstacle < obstacle.radius) {
+        if (shortest_distance_ray_obstacle < obstacle.radius)
+        {
             return true;
         }
     }
@@ -141,14 +150,21 @@ bool is_target_occluded(geometry_msgs::Point origin, geometry_msgs::Point target
     return false;
 }
 
-void timerCallback(const ros::TimerEvent&, tf2_ros::Buffer &tf_buffer) {
-    if (change_flag){
-        // Generate the voxel positions
-        marker.points.clear();
-        marker.colors.clear();
+void timerCallback(const ros::TimerEvent &, tf2_ros::Buffer &tf_buffer)
+{
+    if (change_flag)
+    {
+
+        geometry_msgs::Point closest_point;
+        double min_distance = std::numeric_limits<double>::max();
         double voxel_size = std::cbrt(std::pow(radius, 3) / voxel_count);
         double iteration_step = voxel_size / scaling_factor;
         geometry_msgs::Point camera_position = getCameraPosition(tf_buffer);
+
+        // Generate the voxel positions
+        marker.points.clear();
+        marker.colors.clear();
+
         // Define colors
         std_msgs::ColorRGBA green;
         green.r = 0.0;
@@ -168,15 +184,15 @@ void timerCallback(const ros::TimerEvent&, tf2_ros::Buffer &tf_buffer) {
         orange.b = 0.0;
         orange.a = 1.0;
 
-        
-        double min_distance = std::numeric_limits<double>::max();
-        geometry_msgs::Point closest_point;
-
-        for (double x = -radius; x <= radius; x += iteration_step) {
-            for (double y = -radius; y <= radius; y += iteration_step) {
-                for (double z = 0; z <= radius; z += iteration_step) {
+        for (double x = -radius; x <= radius; x += iteration_step)
+        {
+            for (double y = -radius; y <= radius; y += iteration_step)
+            {
+                for (double z = 0; z <= radius; z += iteration_step)
+                {
                     double dist = std::sqrt(x * x + y * y + z * z);
-                    if (dist <= radius) {
+                    if (dist <= radius)
+                    {
                         geometry_msgs::Point p;
 
                         p.x = root_position.x + x;
@@ -185,17 +201,20 @@ void timerCallback(const ros::TimerEvent&, tf2_ros::Buffer &tf_buffer) {
 
                         // Check if the voxel is occluded or not and set the color accordingly
                         bool occluded = is_target_occluded(p, target_position, obstacles);
-                        if (occluded) {
+                        if (occluded)
+                        {
                             marker.colors.push_back(red);
-
-                        } else {
+                        }
+                        else
+                        {
                             marker.colors.push_back(green);
 
                             // Calculate Euclidean distance to the camera position
                             double distance_to_camera = euclideanDistance(camera_position, p);
 
                             // Update the minimum distance and the corresponding point if needed
-                            if (distance_to_camera < min_distance) {
+                            if (distance_to_camera < min_distance)
+                            {
                                 min_distance = distance_to_camera;
                                 closest_point = p;
                             }
@@ -210,16 +229,20 @@ void timerCallback(const ros::TimerEvent&, tf2_ros::Buffer &tf_buffer) {
         srv.request.input_point.x = closest_point.x;
         srv.request.input_point.y = closest_point.y;
         srv.request.input_point.z = closest_point.z;
-        
+
         // Call the service after the marker is published
-        if (client.call(srv)) {
+        if (execute_observing_path_client.call(srv))
+        {
             ROS_INFO("Service call succeeded.");
-        } else {
+        }
+        else
+        {
             ROS_ERROR("Failed to call service /execute_observing_path");
         }
 
         // Initialize the tf buffer and listener
         tf2_ros::TransformListener tf_listener(tf_buffer);
+
         // Update the marker's scale
         marker.scale.x = voxel_size * scaling_factor;
         marker.scale.y = voxel_size * scaling_factor;
@@ -232,10 +255,10 @@ void timerCallback(const ros::TimerEvent&, tf2_ros::Buffer &tf_buffer) {
         // Set change flag to false, since updated.
         change_flag = false;
     }
-    
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv)
+{
     ros::init(argc, argv, "voxel_dome_generator_node");
     ros::NodeHandle nh;
 
@@ -260,13 +283,10 @@ int main(int argc, char** argv) {
     marker_pub = nh.advertise<visualization_msgs::Marker>("voxel_dome_marker", 0.5);
 
     ros::ServiceServer voxeldome_service = nh.advertiseService("update_voxel_dome", updateVoxelDome);
-
     ros::Subscriber obstacle_locations_sub = nh.subscribe(obstacle_topic, 0.5, obstacleLocationsCallback);
     ros::Subscriber target_coordinates_sub = nh.subscribe("target_coordinates", 0.5, targetPositionCallback);
 
-
-    client = nh.serviceClient<sdc_interaction::ExecuteOberservingPath>("/execute_observing_path");
-
+    execute_observing_path_client = nh.serviceClient<sdc_interaction::ExecuteOberservingPath>("/execute_observing_path");
 
     // Create a timer to update the marker
     ros::Timer timer = nh.createTimer(ros::Duration(0.5), std::bind(timerCallback, std::placeholders::_1, std::ref(tf_buffer)));
