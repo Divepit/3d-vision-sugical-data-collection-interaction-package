@@ -47,8 +47,8 @@ int main(int argc, char** argv)
     ros::init(argc, argv, "vision_obstacle_visualizer_node");
     ros::NodeHandle nh;
 
-    ros::Subscriber obstacle_centers_sub = nh.subscribe("/obstacle_centers", 0.5, obstacle_centers_callback);
-    marker_array_pub = nh.advertise<visualization_msgs::MarkerArray>("vision_obstacles_marker_array", 1);
+    ros::Subscriber obstacle_centers_sub = nh.subscribe("/obstacle_centers", 0.1, obstacle_centers_callback);
+    marker_array_pub = nh.advertise<visualization_msgs::MarkerArray>("vision_obstacles_marker_array", 0.1);
 
     ros::spin();
 

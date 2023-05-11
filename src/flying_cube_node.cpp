@@ -87,8 +87,8 @@ int main(int argc, char **argv) {
 
         // Set parameters for obstacle motion
         double radius = 0.1;
-        double angular_speed = 0.4; // rad/s
-        double z_offset = 0.15;
+        double angular_speed = 0.7; // rad/s
+        double z_offset = 0.075;
         ros::Rate rate(10);
 
         // Move obstacle and publish its coordinates

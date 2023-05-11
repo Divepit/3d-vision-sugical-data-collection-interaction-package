@@ -19,58 +19,6 @@ ros::ServiceClient client_gazebo;
 gazebo_msgs::SetModelState set_model_state_srv;
 
 
-// void visualizeGazeboDelete(const geometry_msgs::Point &target_coordinate)
-// {
-//     static ros::NodeHandle nh;
-//     static ros::ServiceClient delete_model_client = nh.serviceClient<gazebo_msgs::DeleteModel>("gazebo/delete_model");
-//     // Delete the previous target model in Gazebo
-//     gazebo_msgs::DeleteModel delete_model_srv;
-//     delete_model_srv.request.model_name = target_name;
-//     delete_model_client.call(delete_model_srv);
-// }
-
-// void visualizeGazeboSpawn(const geometry_msgs::Point &target_coordinate){
-//     static ros::NodeHandle nh;
-//     static ros::ServiceClient spawn_model_client = nh.serviceClient<gazebo_msgs::SpawnModel>("gazebo/spawn_sdf_model");
-//     // Spawn the new target model in Gazebo
-//     gazebo_msgs::SpawnModel spawn_model_srv;
-//     spawn_model_srv.request.model_name = target_name;
-//     spawn_model_srv.request.model_xml =
-//         "<sdf version='1.6'>"
-//         "  <model name='" + target_name + "'>"
-//         "    <link name='link'>"
-//         "      <gravity>false</gravity>"
-//         "      <self_collide>false</self_collide>"
-//         "      <visual name='visual'>"
-//         "        <geometry>"
-//         "          <sphere>"
-//         "            <radius>0.05</radius>"
-//         "          </sphere>"
-//         "        </geometry>"
-//         "        <material>"
-//         "          <ambient>0.0 0.0 1.0 1.0</ambient>"
-//         "          <diffuse>0.0 0.0 1.0 1.0</diffuse>"
-//         "        </material>"
-//         "      </visual>"
-//         "    </link>"
-//         "  </model>"
-//         "</sdf>";
-//     spawn_model_srv.request.reference_frame = "root";
-//
-//     geometry_msgs::Pose initial_pose;
-//     initial_pose.position = target_coordinate;
-//     initial_pose.orientation.x = 0.0;
-//     initial_pose.orientation.y = 0.0;
-//     initial_pose.orientation.z = 0.0;
-//     initial_pose.orientation.w = 1.0;
-//
-//     spawn_model_srv.request.initial_pose = initial_pose;
-//
-//     if (!spawn_model_client.call(spawn_model_srv))
-//     {
-//         ROS_ERROR_STREAM("Failed to spawn target model '" << target_name << "' in Gazebo.");
-//     }
-// }
 
 void visualizeGazebo(const geometry_msgs::Point &target_coordinate)
 {
@@ -169,7 +117,7 @@ int main(int argc, char **argv)
     // Set the initial target position
     target_coordinate.x = 1;
     target_coordinate.y = 0;
-    target_coordinate.z = 0.25;
+    target_coordinate.z = 0.15;
 
     // Init gazebo target
     // visualizeGazeboSpawn(target_coordinate);
