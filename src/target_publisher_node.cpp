@@ -115,7 +115,7 @@ int main(int argc, char **argv)
     target_marker_pub = nh.advertise<visualization_msgs::Marker>("target_marker", 1);
 
     // Set the initial target position
-    target_coordinate.x = 1;
+    target_coordinate.x = 0.75;
     target_coordinate.y = 0;
     target_coordinate.z = 0.15;
 

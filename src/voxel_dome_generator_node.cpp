@@ -11,6 +11,7 @@
 #include <sdc_interaction/SphereList.h>
 #include <sdc_interaction/Sphere.h>
 #include <std_msgs/Int32.h>
+#include <std_msgs/Bool.h>
 
 // Topic for obstacle locations - set to "/obstacle_locations" for ground truth
 std::string obstacle_topic = "/obstacle_centers";
@@ -27,6 +28,7 @@ tf2_ros::Buffer tf_buffer;
 
 // Logging
 ros::Publisher red_voxels_pub;
+ros::Publisher occluded_pub;
 
 bool is_target_occluded(geometry_msgs::Point origin, geometry_msgs::Point target, std::vector<sdc_interaction::Sphere> &obstacles);
 
@@ -203,7 +205,7 @@ void timerCallback(const ros::TimerEvent &, tf2_ros::Buffer &tf_buffer)
     int red_voxels = 0;
     int green_voxels = 0;
     double x_offset = 0.35;
-    double z_offset = 0.35;
+    double z_offset = 0.4;
 
     for (double x = -radius; x <= radius; x += iteration_step)
     {
@@ -272,6 +274,17 @@ void timerCallback(const ros::TimerEvent &, tf2_ros::Buffer &tf_buffer)
         change_flag = false;
     }
     
+    // Publish boolean if the target is occluded or not
+    std_msgs::Int32 occluded_msg;
+    if (is_target_occluded(target_position, root_position, obstacles))
+    {
+        occluded_msg.data = 1;
+    }
+    else
+    {
+        occluded_msg.data = 0;
+    }
+    occluded_pub.publish(occluded_msg);
 
     // Initialize the tf buffer and listener
     tf2_ros::TransformListener tf_listener(tf_buffer);
@@ -317,6 +330,7 @@ int main(int argc, char **argv)
     
     // Logging
     red_voxels_pub = nh.advertise<std_msgs::Int32>("log/red_voxels", 1);
+    occluded_pub = nh.advertise<std_msgs::Int32>("log/occluded", 1);
 
     execute_observing_path_client = nh.serviceClient<sdc_interaction::ExecuteOberservingPath>("/execute_observing_path");
 
