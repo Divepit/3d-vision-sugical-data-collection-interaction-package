@@ -175,6 +175,6 @@ int main(int argc, char** argv)
     ros::spinOnce();
     loop_rate.sleep();
   }
-
+  ros::waitForShutdown();
   return 0;
 }

@@ -13,6 +13,7 @@
 #include <std_msgs/Int32.h>
 #include <std_msgs/Bool.h>
 
+
 // Topic for obstacle locations - set to "/obstacle_locations" for ground truth
 std::string obstacle_topic = "/obstacle_centers";
 // std::string obstacle_topic = "/obstacle_locations";
@@ -27,8 +28,8 @@ std::vector<sdc_interaction::Sphere> obstacles;
 sdc_interaction::ExecuteOberservingPath srv;
 tf2_ros::Buffer tf_buffer;
 geometry_msgs::Point closest_point;
-double x_offset = 0.5;
-double z_offset = 0.4;
+double x_offset = 0.55;
+double z_offset = 0.2;
 
 
 
@@ -395,6 +396,6 @@ int main(int argc, char **argv)
 
     // Handle callbacks using ros::spin()
     ros::spin();
-
+    ros::waitForShutdown();
     return 0;
 }

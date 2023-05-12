@@ -130,6 +130,6 @@ int main(int argc, char **argv) {
             rate.sleep();
         }
     }
-
+    ros::waitForShutdown();
     return 0;
 }

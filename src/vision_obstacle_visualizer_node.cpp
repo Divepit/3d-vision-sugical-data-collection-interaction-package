@@ -51,6 +51,6 @@ int main(int argc, char** argv)
     marker_array_pub = nh.advertise<visualization_msgs::MarkerArray>("vision_obstacles_marker_array", 0.1);
 
     ros::spin();
-
+    ros::waitForShutdown();
     return 0;
 }

@@ -98,6 +98,6 @@ int main(int argc, char **argv)
     ros::ServiceServer execute_observing_path_service = nh.advertiseService("execute_observing_path", execute_observing_path);
 
     ros::spin();
-
+    ros::waitForShutdown();
     return 0;
 }
