@@ -18,7 +18,8 @@ void target_coordinates_callback(const geometry_msgs::Point::ConstPtr &msg)
 }
 
 bool execute_observing_path(sdc_interaction::ExecuteOberservingPath::Request &req, sdc_interaction::ExecuteOberservingPath::Response &res)
-{
+{   
+    ROS_INFO("[Interaction Debug]execute_observing_path service called");
     ros::NodeHandle nh;
     ros::ServiceClient plan_trajectory_client = nh.serviceClient<mrirac_msgs::TrajectoryPlan>("/mrirac_trajectory_planner/plan_trajectory");
     ros::ServiceClient execute_trajectory_client = nh.serviceClient<std_srvs::Empty>("/mrirac_trajectory_planner/execute_trajectory");
@@ -35,13 +36,15 @@ bool execute_observing_path(sdc_interaction::ExecuteOberservingPath::Request &re
     z_c = req.input_point.z;
 
     // print desired camera pose x y and z to ros console
-    ROS_INFO("desired camera pose x: %f", x_c);
-    ROS_INFO("desired camera pose y: %f", y_c);
-    ROS_INFO("desired camera pose z: %f", z_c);
+    ROS_INFO("[Interaction Debug]desired camera pose x: %f", x_c);
+    ROS_INFO("[Interaction Debug]desired camera pose y: %f", y_c);
+    ROS_INFO("[Interaction Debug]desired camera pose z: %f", z_c);
 
+    
     // Compute the direction vector from the camera to the target
+    ROS_INFO("[Interaction Debug]Computing quaternion");
     tf2::Vector3 direction_vec(observable_target_x - x_c, observable_target_y - y_c, observable_target_z - z_c);
-
+    
     // Normalize the vector
     direction_vec.normalize();
 
@@ -54,10 +57,6 @@ bool execute_observing_path(sdc_interaction::ExecuteOberservingPath::Request &re
     camera_pose_quarternion.setRotation(axis, angle);
     // ----> Calculate Camera Poser
 
-    ROS_INFO("camera_pose_quarternion.x() %f", camera_pose_quarternion.x());
-    ROS_INFO("camera_pose_quarternion.y() %f", camera_pose_quarternion.y());
-    ROS_INFO("camera_pose_quarternion.z() %f", camera_pose_quarternion.z());
-    ROS_INFO("camera_pose_quarternion.w() %f", camera_pose_quarternion.w());
 
     plan_trajectory_req.request.target_pose.position.x = x_c;
     plan_trajectory_req.request.target_pose.position.y = y_c;
@@ -67,6 +66,7 @@ bool execute_observing_path(sdc_interaction::ExecuteOberservingPath::Request &re
     plan_trajectory_req.request.target_pose.orientation.z = camera_pose_quarternion.z();
     plan_trajectory_req.request.target_pose.orientation.w = camera_pose_quarternion.w();
 
+    ROS_INFO("[Interaction Debug]Planning trajectory");
     if (!plan_trajectory_client.call(plan_trajectory_req))
     {
         ROS_ERROR("Failed to call plan_trajectory service");
@@ -74,6 +74,7 @@ bool execute_observing_path(sdc_interaction::ExecuteOberservingPath::Request &re
         return false;
     }
 
+    ROS_INFO("[Interaction Debug] Executing trajectory");
     std_srvs::Empty execute_trajectory_req;
     if (!execute_trajectory_client.call(execute_trajectory_req))
     {
