@@ -14,8 +14,8 @@
 #include <std_msgs/Bool.h>
 
 // Topic for obstacle locations - set to "/obstacle_locations" for ground truth
-std::string obstacle_topic = "/obstacle_centers";
-// std::string obstacle_topic = "/obstacle_locations";
+// std::string obstacle_topic = "/obstacle_centers";
+std::string obstacle_topic = "/obstacle_locations";
 std::string camera_frame_name = "camera_coordinate_system";
 
 // Global variables
@@ -26,6 +26,11 @@ geometry_msgs::Point target_position;
 std::vector<sdc_interaction::Sphere> obstacles;
 sdc_interaction::ExecuteOberservingPath srv;
 tf2_ros::Buffer tf_buffer;
+geometry_msgs::Point closest_point;
+double x_offset = 0.5;
+double z_offset = 0.4;
+
+
 
 // Logging
 ros::Publisher red_voxels_pub;
@@ -170,11 +175,32 @@ bool is_target_occluded(geometry_msgs::Point origin, geometry_msgs::Point target
 
     return false;
 }
-
-void timerCallback(const ros::TimerEvent &, tf2_ros::Buffer &tf_buffer)
+void executingTimerCallback(const ros::TimerEvent &, tf2_ros::Buffer &tf_buffer) 
 {
-    ROS_INFO("[Interaction Debug]Timer callback triggered.");
-    geometry_msgs::Point closest_point;
+    if (change_flag)
+        {
+            srv.request.input_point.x = closest_point.x;
+            srv.request.input_point.y = closest_point.y;
+            srv.request.input_point.z = closest_point.z;
+
+            // Call the service after the marker is published
+            // ROS_INFO("[Interaction Debug]Calling service /execute_observing_path...");
+            if (execute_observing_path_client.call(srv))
+            {
+                // ROS_INFO("[Interaction Debug]Service call succeeded.");
+            }
+            else
+            {
+                ROS_ERROR("Failed to call service /execute_observing_path");
+            }
+            change_flag = false;
+        }
+}
+
+
+void domeUpdateCallback(const ros::TimerEvent &, tf2_ros::Buffer &tf_buffer)
+{
+    // ROS_INFO("[Interaction Debug]Timer callback triggered.");
     double min_distance = std::numeric_limits<double>::max();
     double voxel_size = std::cbrt(std::pow(radius, 3) / voxel_count);
     double iteration_step = voxel_size / scaling_factor;
@@ -205,10 +231,9 @@ void timerCallback(const ros::TimerEvent &, tf2_ros::Buffer &tf_buffer)
 
     int red_voxels = 0;
     int green_voxels = 0;
-    double x_offset = 0.35;
-    double z_offset = 0.4;
 
-    ROS_INFO("[Interaction Debug]Generating voxels...");
+
+    // ROS_INFO("[Interaction Debug]Generating voxels...");
     for (double x = -radius; x <= radius; x += iteration_step)
     {
         for (double y = -radius; y <= radius; y += iteration_step)
@@ -235,16 +260,6 @@ void timerCallback(const ros::TimerEvent &, tf2_ros::Buffer &tf_buffer)
                     {
                         marker.colors.push_back(green);
                         green_voxels++;
-
-                        // Calculate Euclidean distance to the camera position
-                        double distance_to_camera = euclideanDistance(camera_position, p);
-
-                        // Update the minimum distance and the corresponding point if needed
-                        if ((distance_to_camera < min_distance && distance_to_camera > 0.3) && change_flag)
-                        {
-                            min_distance = distance_to_camera;
-                            closest_point = p;
-                        }
                     }
 
                     marker.points.push_back(p);
@@ -252,34 +267,15 @@ void timerCallback(const ros::TimerEvent &, tf2_ros::Buffer &tf_buffer)
             }
         }
     }
-    ROS_INFO("[Interaction Debug]Voxels generated.");
+    // ROS_INFO("[Interaction Debug]Voxels generated.");
     // Publish the number of red and green voxels
     std_msgs::Int32 red_voxels_msg;
     red_voxels_msg.data = red_voxels;
     red_voxels_pub.publish(red_voxels_msg);
-
-    if (change_flag)
-    {
-        srv.request.input_point.x = closest_point.x;
-        srv.request.input_point.y = closest_point.y;
-        srv.request.input_point.z = closest_point.z;
-
-        // Call the service after the marker is published
-        ROS_INFO("[Interaction Debug]Calling service /execute_observing_path...");
-        if (execute_observing_path_client.call(srv))
-        {
-            ROS_INFO("[Interaction Debug]Service call succeeded.");
-        }
-        else
-        {
-            ROS_ERROR("Failed to call service /execute_observing_path");
-        }
-        change_flag = false;
-    }
     
     // Publish boolean if the target is occluded or not
     std_msgs::Int32 occluded_msg;
-    ROS_INFO("[Interaction Debug]Checking if the target is occluded...");
+    // ROS_INFO("[Interaction Debug]Checking if the target is occluded...");
     if (is_target_occluded(target_position, root_position, obstacles))
     {
         occluded_msg.data = 1;
@@ -299,15 +295,67 @@ void timerCallback(const ros::TimerEvent &, tf2_ros::Buffer &tf_buffer)
     marker.scale.z = voxel_size * scaling_factor;
 
     // Publish the marker
-    ROS_INFO("[Interaction Debug]Publishing the marker...");
+    // ROS_INFO("[Interaction Debug]Publishing the marker...");
     marker.header.stamp = ros::Time::now();
     marker_pub.publish(marker);
 
 }
 
+
+void planningTimerCallback(const ros::TimerEvent &, tf2_ros::Buffer &tf_buffer)
+{
+    // ROS_INFO("[Interaction Debug]Timer callback triggered.");
+    double min_distance = std::numeric_limits<double>::max();
+    double voxel_size = std::cbrt(std::pow(radius, 3) / voxel_count);
+    double iteration_step = voxel_size / scaling_factor;
+    geometry_msgs::Point camera_position = getCameraPosition(tf_buffer);
+    geometry_msgs::Point p;
+    geometry_msgs::Point prev_p;
+
+    // ROS_INFO("[Interaction Debug]Generating voxels...");
+    for (double x = -radius; x <= radius; x += iteration_step)
+    {
+        for (double y = -radius; y <= radius; y += iteration_step)
+        {
+            for (double z = 0; z <= radius; z += iteration_step)
+            {
+                double dist = std::sqrt(x * x + y * y + z * z);
+                if (dist <= radius)
+                {
+                    prev_p = p;
+
+                    p.x = root_position.x + + x_offset + x;
+                    p.y = root_position.y + y;
+                    p.z = root_position.z + z_offset + z;
+
+                    // Check if the voxel is occluded or not and set the color accordingly
+                    bool occluded = is_target_occluded(p, target_position, obstacles);
+                    if (!occluded)
+                    {
+                        // Calculate Euclidean distance to the camera position
+                        double distance_to_move = euclideanDistance(prev_p, p);
+
+                        // Update the minimum distance and the corresponding point if needed
+                        if ((distance_to_move < min_distance) && change_flag)
+                        {
+                            min_distance = distance_to_move;
+                            if (min_distance > 0.05)
+                            {
+                                closest_point = p;
+                            } else {
+                                change_flag = false;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 int main(int argc, char **argv)
 {   
-    ROS_INFO("[Interaction Debug]Starting voxel dome generator node...");
+    // ROS_INFO("[Interaction Debug]Starting voxel dome generator node...");
     ros::init(argc, argv, "voxel_dome_generator_node");
     ros::NodeHandle nh;
 
@@ -328,20 +376,22 @@ int main(int argc, char **argv)
     marker.lifetime = ros::Duration();
 
     // Advertise the marker publisher
-    marker_pub = nh.advertise<visualization_msgs::Marker>("voxel_dome_marker", 0.5);
+    marker_pub = nh.advertise<visualization_msgs::Marker>("voxel_dome_marker", 0.1);
 
     ros::ServiceServer voxeldome_service = nh.advertiseService("update_voxel_dome", updateVoxelDome);
-    ros::Subscriber obstacle_locations_sub = nh.subscribe(obstacle_topic, 0.5, obstacleLocationsCallback);
-    ros::Subscriber target_coordinates_sub = nh.subscribe("target_coordinates", 0.5, targetPositionCallback);
+    ros::Subscriber obstacle_locations_sub = nh.subscribe(obstacle_topic, 0.1, obstacleLocationsCallback);
+    ros::Subscriber target_coordinates_sub = nh.subscribe("target_coordinates", 0.1, targetPositionCallback);
     
     // Logging
-    red_voxels_pub = nh.advertise<std_msgs::Int32>("log/red_voxels", 1);
-    occluded_pub = nh.advertise<std_msgs::Int32>("log/occluded", 1);
+    red_voxels_pub = nh.advertise<std_msgs::Int32>("log/red_voxels", 0.1);
+    occluded_pub = nh.advertise<std_msgs::Int32>("log/occluded", 0.1);
 
     execute_observing_path_client = nh.serviceClient<sdc_interaction::ExecuteOberservingPath>("/execute_observing_path");
 
     // Create a timer to update the marker
-    ros::Timer timer = nh.createTimer(ros::Duration(0.1), std::bind(timerCallback, std::placeholders::_1, std::ref(tf_buffer)));
+    ros::Timer timer_planning = nh.createTimer(ros::Duration(0.5), std::bind(planningTimerCallback, std::placeholders::_1, std::ref(tf_buffer)));
+    ros::Timer timer_executing = nh.createTimer(ros::Duration(0.5), std::bind(executingTimerCallback, std::placeholders::_1, std::ref(tf_buffer)));
+    ros::Timer timer_dome_updates = nh.createTimer(ros::Duration(0.1), std::bind(domeUpdateCallback, std::placeholders::_1, std::ref(tf_buffer)));
 
     // Handle callbacks using ros::spin()
     ros::spin();
