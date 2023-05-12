@@ -14,8 +14,8 @@
 #include <std_msgs/Bool.h>
 
 // Topic for obstacle locations - set to "/obstacle_locations" for ground truth
-// std::string obstacle_topic = "/obstacle_centers";
-std::string obstacle_topic = "/obstacle_locations";
+std::string obstacle_topic = "/obstacle_centers";
+// std::string obstacle_topic = "/obstacle_locations";
 std::string camera_frame_name = "camera_coordinate_system";
 
 // Global variables
@@ -286,8 +286,8 @@ void domeUpdateCallback(const ros::TimerEvent &, tf2_ros::Buffer &tf_buffer)
     }
     occluded_pub.publish(occluded_msg);
 
-    // Initialize the tf buffer and listener
-    tf2_ros::TransformListener tf_listener(tf_buffer);
+    // // Initialize the tf buffer and listener
+    // tf2_ros::TransformListener tf_listener(tf_buffer);
 
     // Update the marker's scale
     marker.scale.x = voxel_size * scaling_factor;
