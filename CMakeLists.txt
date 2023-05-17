@@ -259,3 +259,5 @@ add_dependencies(sphere_obstacles_publisher_node ${${PROJECT_NAME}_EXPORTED_TARG
 target_link_libraries(sphere_obstacles_publisher_node
   ${catkin_LIBRARIES}
 )
+add_executable(vision_obstacle_visualizer_node src/vision_obstacle_visualizer_node.cpp)
+target_link_libraries(vision_obstacle_visualizer_node ${catkin_LIBRARIES})
