@@ -89,7 +89,10 @@ void targetPositionCallback(const geometry_msgs::Point::ConstPtr &msg)
         target_position.z = msg_pos.z;
 
         // Set change flag in order for dome to be updated
-        change_flag = true;
+        if (!line_of_sight)
+        {
+            change_flag = true;
+        }
     }
 }
 
@@ -104,10 +107,10 @@ void obstacleLocationsCallback(const sdc_interaction::SphereList::ConstPtr &msg)
         // Set the change_flag to true to indicate that the obstacles list has changed
         // Set change flag to false, since updated.
         geometry_msgs::Point camera_position = getCameraPosition(tf_buffer);
-        // if (is_target_occluded(camera_position , target_position, obstacles))
-        // {
+        if (!line_of_sight)
+        {
             change_flag = true;
-        // }
+        }
     }
 }
 
@@ -312,7 +315,7 @@ void domeUpdateCallback(const ros::TimerEvent &, tf2_ros::Buffer &tf_buffer)
 
 void planningTimerCallback(const ros::TimerEvent &, tf2_ros::Buffer &tf_buffer)
 {
-    if (change_flag && !line_of_sight) {
+    if (change_flag) {
         // ROS_INFO("[Interaction Debug]Timer callback triggered.");
         double min_distance = std::numeric_limits<double>::max();
         double voxel_size = std::cbrt(std::pow(radius, 3) / voxel_count);
@@ -351,10 +354,7 @@ void planningTimerCallback(const ros::TimerEvent &, tf2_ros::Buffer &tf_buffer)
                                 if (min_distance > 0.05)
                                 {
                                     closest_point = p;
-                                }
-                                else
-                                {
-                                    change_flag = false;
+                                    executingTimerCallback();
                                 }
                             }
                         }
@@ -363,7 +363,6 @@ void planningTimerCallback(const ros::TimerEvent &, tf2_ros::Buffer &tf_buffer)
             }
         } 
         
-        executingTimerCallback();
     }
 }
 
@@ -393,9 +392,9 @@ int main(int argc, char **argv)
     marker_pub = nh.advertise<visualization_msgs::Marker>("voxel_dome_marker", 0.2);
 
     ros::ServiceServer voxeldome_service = nh.advertiseService("update_voxel_dome", updateVoxelDome);
-    ros::Subscriber obstacle_locations_sub = nh.subscribe(obstacle_topic, 0.2, obstacleLocationsCallback);
-    ros::Subscriber target_coordinates_sub = nh.subscribe("target_coordinates", 0.2, targetPositionCallback);
-    ros::Subscriber lin_of_sight_sub = nh.subscribe("line_of_sight", 0.2, lineOfSightCallback);
+    ros::Subscriber obstacle_locations_sub = nh.subscribe(obstacle_topic, 0.5, obstacleLocationsCallback);
+    ros::Subscriber target_coordinates_sub = nh.subscribe("target_coordinates", 0.5, targetPositionCallback);
+    ros::Subscriber lin_of_sight_sub = nh.subscribe("line_of_sight", 0.1, lineOfSightCallback);
     
     // Logging
     red_voxels_pub = nh.advertise<std_msgs::Int32>("log/red_voxels", 0.2);
@@ -406,7 +405,7 @@ int main(int argc, char **argv)
     // Create a timer to update the marker
     ros::Timer timer_planning = nh.createTimer(ros::Duration(1), std::bind(planningTimerCallback, std::placeholders::_1, std::ref(tf_buffer)));
     // ros::Timer timer_executing = nh.createTimer(ros::Duration(1), std::bind(executingTimerCallback, std::placeholders::_1, std::ref(tf_buffer)));
-    ros::Timer timer_dome_updates = nh.createTimer(ros::Duration(0.2), std::bind(domeUpdateCallback, std::placeholders::_1, std::ref(tf_buffer)));
+    ros::Timer timer_dome_updates = nh.createTimer(ros::Duration(0.1), std::bind(domeUpdateCallback, std::placeholders::_1, std::ref(tf_buffer)));
 
     // Handle callbacks using ros::spin()
     ros::spin();
