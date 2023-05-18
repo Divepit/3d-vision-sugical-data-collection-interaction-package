@@ -286,7 +286,7 @@ void domeUpdateCallback(const ros::TimerEvent &, tf2_ros::Buffer &tf_buffer)
     // Publish boolean if the target is occluded or not
     std_msgs::Int32 occluded_msg;
     // ROS_INFO("[Interaction Debug]Checking if the target is occluded...");
-    if (is_target_occluded(camera_position, target_position, obstacles))
+    if (line_of_sight)
     {
         occluded_msg.data = 1;
     }
