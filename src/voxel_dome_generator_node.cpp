@@ -15,8 +15,8 @@
 
 
 // Topic for obstacle locations - set to "/obstacle_locations" for ground truth
-std::string obstacle_topic = "/obstacle_centers";
-// std::string obstacle_topic = "/obstacle_locations";
+// std::string obstacle_topic = "/obstacle_centers";
+std::string obstacle_topic = "/obstacle_locations";
 std::string camera_frame_name = "camera_coordinate_system";
 
 // Global variables
@@ -95,10 +95,10 @@ void obstacleLocationsCallback(const sdc_interaction::SphereList::ConstPtr &msg)
         // Set the change_flag to true to indicate that the obstacles list has changed
         // Set change flag to false, since updated.
         geometry_msgs::Point camera_position = getCameraPosition(tf_buffer);
-        if (is_target_occluded(camera_position , target_position, obstacles))
-        {
+        // if (is_target_occluded(camera_position , target_position, obstacles))
+        // {
             change_flag = true;
-        }
+        // }
     }
 }
 
@@ -277,7 +277,7 @@ void domeUpdateCallback(const ros::TimerEvent &, tf2_ros::Buffer &tf_buffer)
     // Publish boolean if the target is occluded or not
     std_msgs::Int32 occluded_msg;
     // ROS_INFO("[Interaction Debug]Checking if the target is occluded...");
-    if (is_target_occluded(target_position, root_position, obstacles))
+    if (is_target_occluded(camera_position, target_position, obstacles))
     {
         occluded_msg.data = 1;
     }
@@ -343,7 +343,9 @@ void planningTimerCallback(const ros::TimerEvent &, tf2_ros::Buffer &tf_buffer)
                             if (min_distance > 0.05)
                             {
                                 closest_point = p;
-                            } else {
+                            }
+                            else
+                            {
                                 change_flag = false;
                             }
                         }
