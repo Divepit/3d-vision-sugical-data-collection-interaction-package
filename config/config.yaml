@@ -1,1 +1,2 @@
 use_dynamic_obstacle: false
+scheduled_occlusions: true

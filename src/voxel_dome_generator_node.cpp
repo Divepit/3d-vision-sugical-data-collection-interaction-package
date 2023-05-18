@@ -15,8 +15,8 @@
 
 
 // Topic for obstacle locations - set to "/obstacle_locations" for ground truth
-// std::string obstacle_topic = "/obstacle_centers";
-std::string obstacle_topic = "/obstacle_locations";
+std::string obstacle_topic = "/obstacle_centers";
+// std::string obstacle_topic = "/obstacle_locations";
 std::string camera_frame_name = "camera_coordinate_system";
 
 // Global variables
@@ -30,12 +30,13 @@ tf2_ros::Buffer tf_buffer;
 geometry_msgs::Point closest_point;
 double x_offset = 0.55;
 double z_offset = 0.2;
-
+bool line_of_sight = false;
 
 
 // Logging
 ros::Publisher red_voxels_pub;
 ros::Publisher occluded_pub;
+
 
 bool is_target_occluded(geometry_msgs::Point origin, geometry_msgs::Point target, std::vector<sdc_interaction::Sphere> &obstacles);
 
@@ -65,6 +66,14 @@ geometry_msgs::Point getCameraPosition(tf2_ros::Buffer &tf_buffer)
 
     return camera_position;
 }
+
+
+void lineOfSightCallback(const std_msgs::Bool &msg)
+{
+    line_of_sight = msg.data;
+    // ROS_INFO("Line of sight: %d", line_of_sight);
+}
+
 
 // New target position callback
 void targetPositionCallback(const geometry_msgs::Point::ConstPtr &msg)
@@ -178,7 +187,7 @@ bool is_target_occluded(geometry_msgs::Point origin, geometry_msgs::Point target
 }
 void executingTimerCallback(const ros::TimerEvent &, tf2_ros::Buffer &tf_buffer) 
 {
-    if (change_flag)
+    if (change_flag && !line_of_sight)
         {
             srv.request.input_point.x = closest_point.x;
             srv.request.input_point.y = closest_point.y;
@@ -379,22 +388,23 @@ int main(int argc, char **argv)
     marker.lifetime = ros::Duration();
 
     // Advertise the marker publisher
-    marker_pub = nh.advertise<visualization_msgs::Marker>("voxel_dome_marker", 0.1);
+    marker_pub = nh.advertise<visualization_msgs::Marker>("voxel_dome_marker", 0.2);
 
     ros::ServiceServer voxeldome_service = nh.advertiseService("update_voxel_dome", updateVoxelDome);
-    ros::Subscriber obstacle_locations_sub = nh.subscribe(obstacle_topic, 0.1, obstacleLocationsCallback);
-    ros::Subscriber target_coordinates_sub = nh.subscribe("target_coordinates", 0.1, targetPositionCallback);
+    ros::Subscriber obstacle_locations_sub = nh.subscribe(obstacle_topic, 0.2, obstacleLocationsCallback);
+    ros::Subscriber target_coordinates_sub = nh.subscribe("target_coordinates", 0.2, targetPositionCallback);
+    ros::Subscriber lin_of_sight_sub = nh.subscribe("line_of_sight", 0.2, lineOfSightCallback);
     
     // Logging
-    red_voxels_pub = nh.advertise<std_msgs::Int32>("log/red_voxels", 0.1);
-    occluded_pub = nh.advertise<std_msgs::Int32>("log/occluded", 0.1);
+    red_voxels_pub = nh.advertise<std_msgs::Int32>("log/red_voxels", 0.2);
+    occluded_pub = nh.advertise<std_msgs::Int32>("log/occluded", 0.2);
 
     execute_observing_path_client = nh.serviceClient<sdc_interaction::ExecuteOberservingPath>("/execute_observing_path");
 
     // Create a timer to update the marker
-    ros::Timer timer_planning = nh.createTimer(ros::Duration(0.5), std::bind(planningTimerCallback, std::placeholders::_1, std::ref(tf_buffer)));
-    ros::Timer timer_executing = nh.createTimer(ros::Duration(0.5), std::bind(executingTimerCallback, std::placeholders::_1, std::ref(tf_buffer)));
-    ros::Timer timer_dome_updates = nh.createTimer(ros::Duration(0.1), std::bind(domeUpdateCallback, std::placeholders::_1, std::ref(tf_buffer)));
+    ros::Timer timer_planning = nh.createTimer(ros::Duration(1), std::bind(planningTimerCallback, std::placeholders::_1, std::ref(tf_buffer)));
+    ros::Timer timer_executing = nh.createTimer(ros::Duration(1), std::bind(executingTimerCallback, std::placeholders::_1, std::ref(tf_buffer)));
+    ros::Timer timer_dome_updates = nh.createTimer(ros::Duration(0.2), std::bind(domeUpdateCallback, std::placeholders::_1, std::ref(tf_buffer)));
 
     // Handle callbacks using ros::spin()
     ros::spin();
