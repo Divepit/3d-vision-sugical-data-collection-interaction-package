@@ -1,2 +1,3 @@
 use_dynamic_obstacle: false
-scheduled_occlusions: true
+replan_trigger_obstacle: true
+replan_trigger_interval: 5

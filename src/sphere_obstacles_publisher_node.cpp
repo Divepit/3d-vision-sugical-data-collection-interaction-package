@@ -48,9 +48,10 @@ public:
   SphereObstaclesPublisher()
   { 
     // Read in config params
-    if (!nh_.getParam("use_dynamic_obstacle", use_dynamic_obstacle))
+    if (!nh_.getParam("use_dynamic_obstacle", use_dynamic_obstacle) ||
+        !nh_.getParam("replan_trigger_obstacle", replan_trigger_obstacle))
     {
-        ROS_ERROR("[sphere_obstacles_publisher_node] Failed to get param 'use_dynamic_obstacle'");
+        ROS_ERROR("[sphere_obstacles_publisher_node] Failed to get config params");
     }
 
     publisher_ = nh_.advertise<sdc_interaction::SphereList>("obstacle_locations", 1);
@@ -64,7 +65,7 @@ public:
     visualization_msgs::MarkerArray marker_array = createObstacleMarkers(obstacles_);
     marker_publisher_.publish(marker_array);
     // Only use this gazebo publisher in case we do not use the dynamic obstacle
-    if(!use_dynamic_obstacle){
+    if(!use_dynamic_obstacle && !replan_trigger_obstacle){
       publishGazebo();
     }
   }
@@ -85,7 +86,11 @@ public:
       std::string sphere_name = "obstacle_gaz_" + std::to_string(++idx);
       gazebo_msgs::DeleteModel delete_model_srv;
       delete_model_srv.request.model_name = sphere_name;
-      delete_model_client.call(delete_model_srv); 
+      // delete_model_client.call(delete_model_srv); 
+      if (!delete_model_client.call(delete_model_srv))
+        {
+          ROS_ERROR("[sphere_obstacles_publisher_node] Failed to delete model in Gazebo.");
+        }
     }
 
     // Update obstacles and spawn new ones in Gazebo
@@ -161,6 +166,7 @@ private:
   sdc_interaction::SphereList old_obstacles_;
   bool obstacles_updated_ = false;
   bool use_dynamic_obstacle;
+  bool replan_trigger_obstacle;
 };
 
 int main(int argc, char** argv)
