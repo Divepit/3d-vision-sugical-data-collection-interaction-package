@@ -1,4 +1,5 @@
 #include <ros/ros.h>
+#include <random>
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <gazebo_msgs/SpawnModel.h>
@@ -17,6 +18,10 @@ ros::ServiceClient change_obstacle_client;
 geometry_msgs::Point target_position;
 bool replan_trigger_obstacle;
 double replan_trigger_interval;
+bool replan_trigger_square;
+double replan_trigger_square_bound_x;
+double replan_trigger_square_bound_y;
+double replan_trigger_square_offset_z;
 
 // Params
 std::string camera_frame_name = "camera_coordinate_system";
@@ -53,13 +58,29 @@ void targetPositionCallback(const geometry_msgs::Point::ConstPtr &msg)
 
 void positionTriggerObstacle(const ros::TimerEvent&) {
     if (replan_trigger_obstacle) {
-        // Get camera position
-        geometry_msgs::Point camera_position = getCameraPosition();
         geometry_msgs::Point trigger_obstacle_position;
-        trigger_obstacle_position.x = (camera_position.x + target_position.x) / 2.0;
-        trigger_obstacle_position.y = (camera_position.y + target_position.y) / 2.0;
-        trigger_obstacle_position.z = (camera_position.z + target_position.z) / 2.0;
 
+        if (replan_trigger_square){
+            // Create a random number generator
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            
+            // Define the range for x and y coordinates
+            std::uniform_real_distribution<double> xDist(target_position.x - replan_trigger_square_bound_x, target_position.x + replan_trigger_square_bound_x);
+            std::uniform_real_distribution<double> yDist(target_position.y - replan_trigger_square_bound_y, target_position.y + replan_trigger_square_bound_y);
+            
+            // Generate random x and y coordinates within the given intervals
+            trigger_obstacle_position.x = xDist(gen);
+            trigger_obstacle_position.y = yDist(gen);
+            trigger_obstacle_position.z = target_position.z + replan_trigger_square_offset_z;
+
+        }else{// Place obstacle between target and camera
+            // Get camera position
+            geometry_msgs::Point camera_position = getCameraPosition();
+            trigger_obstacle_position.x = (camera_position.x + target_position.x) / 2.0;
+            trigger_obstacle_position.y = (camera_position.y + target_position.y) / 2.0;
+            trigger_obstacle_position.z = (camera_position.z + target_position.z) / 2.0;
+        }
         // Set model state in gazebo
         gazebo_msgs::SetModelState set_model_state_srv;
         set_model_state_srv.request.model_state.model_name = "trigger_obstacle";
@@ -95,7 +116,16 @@ int main(int argc, char** argv) {
     
     // Get required parameters
     if (!nh.getParam("replan_trigger_obstacle", replan_trigger_obstacle) || 
-        !nh.getParam("replan_trigger_interval", replan_trigger_interval))
+        !nh.getParam("replan_trigger_interval", replan_trigger_interval) || 
+        !nh.getParam("replan_trigger_square", replan_trigger_square))
+    {
+        ROS_ERROR("[replan_trigger_obstacle_node] Failed to get config params.");
+    }
+
+    if (replan_trigger_square &&
+        !nh.getParam("replan_trigger_square_bound_x", replan_trigger_square_bound_x) || 
+        !nh.getParam("replan_trigger_square_bound_y", replan_trigger_square_bound_y) || 
+        !nh.getParam("replan_trigger_square_offset_z", replan_trigger_square_offset_z))
     {
         ROS_ERROR("[replan_trigger_obstacle_node] Failed to get config params.");
     }
