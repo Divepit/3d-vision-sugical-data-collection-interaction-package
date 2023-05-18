@@ -288,7 +288,7 @@ void domeUpdateCallback(const ros::TimerEvent &, tf2_ros::Buffer &tf_buffer)
     occluded_pub.publish(occluded_msg);
 
     // // Initialize the tf buffer and listener
-    // tf2_ros::TransformListener tf_listener(tf_buffer);
+    // // tf2_ros::TransformListener tf_listener(tf_buffer);
 
     // Update the marker's scale
     marker.scale.x = voxel_size * scaling_factor;
