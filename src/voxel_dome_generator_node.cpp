@@ -15,8 +15,8 @@
 
 
 // Topic for obstacle locations - set to "/obstacle_locations" for ground truth
-// std::string obstacle_topic = "/obstacle_centers";
-std::string obstacle_topic = "/obstacle_locations";
+std::string obstacle_topic = "/obstacle_centers";
+// std::string obstacle_topic = "/obstacle_locations";
 std::string camera_frame_name = "camera_coordinate_system";
 
 // Global variables
