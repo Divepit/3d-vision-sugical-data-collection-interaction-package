@@ -19,7 +19,6 @@ def plot_data(folder_selected):
     files_in_folder = os.listdir(folder_selected)
     csv_files = [f for f in files_in_folder if f.endswith(".csv")]
 
-    # Separate the occluded and red_voxels files
     occluded_files = [f for f in csv_files if "occluded" in f]
 
     fig, axs = plt.subplots(1, 1, figsize=(10, 6))  # Create a figure with one subplot
