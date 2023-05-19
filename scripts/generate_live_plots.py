@@ -13,7 +13,6 @@ class DataLogger:
 
     def __init__(self, logging_period=10):
         self.logging_period = logging_period
-        self.red_voxels = []
         self.occluded = []
         self.start_time = None
 
@@ -26,7 +25,7 @@ class DataLogger:
         rospy.init_node('data_logger', anonymous=True)
         rospy.Subscriber('log/occluded', Int32, self.occluded_callback)
 
-        print("Subscribed to 'log/red_voxels' and 'log/occluded' topics")
+        print("Subscribed to 'log/occluded' topics")
 
 
     def occluded_callback(self, data):
@@ -53,7 +52,6 @@ class DataLogger:
 
         print(f"Saved occluded data to: {occluded_path}")
 
-        self.red_voxels = []
         self.occluded = []
 
 if __name__ == '__main__':
