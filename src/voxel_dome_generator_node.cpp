@@ -15,8 +15,8 @@
 
 
 // Topic for obstacle locations - set to "/obstacle_locations" for ground truth
-std::string obstacle_topic = "/obstacle_centers";
-// std::string obstacle_topic = "/obstacle_locations";
+// std::string obstacle_topic = "/obstacle_centers";
+std::string obstacle_topic = "/obstacle_locations";
 std::string camera_frame_name = "camera_coordinate_system";
 
 // Global variables
@@ -28,9 +28,11 @@ std::vector<sdc_interaction::Sphere> obstacles;
 sdc_interaction::ExecuteOberservingPath srv;
 tf2_ros::Buffer tf_buffer;
 geometry_msgs::Point closest_point;
-double x_offset = 0.55;
-double z_offset = 0.2;
+double x_offset = 0.7;
+double z_offset = 0.4;
 bool line_of_sight = false;
+int red_voxels;
+
 
 
 // Logging
@@ -40,8 +42,8 @@ ros::Publisher occluded_pub;
 
 bool is_target_occluded(geometry_msgs::Point origin, geometry_msgs::Point target, std::vector<sdc_interaction::Sphere> &obstacles);
 
-double radius = 0.4;
-int voxel_count = 2000;
+double radius = 0.6;
+int voxel_count = 5000;
 double scaling_factor = 0.4;
 
 ros::ServiceClient execute_observing_path_client;
@@ -88,8 +90,10 @@ void targetPositionCallback(const geometry_msgs::Point::ConstPtr &msg)
         target_position.y = msg_pos.y;
         target_position.z = msg_pos.z;
 
+        bool occluded = is_target_occluded(getCameraPosition(tf_buffer), target_position, obstacles);
+
         // Set change flag in order for dome to be updated
-        if (!line_of_sight)
+        if (occluded)
         {
             change_flag = true;
         }
@@ -107,7 +111,8 @@ void obstacleLocationsCallback(const sdc_interaction::SphereList::ConstPtr &msg)
         // Set the change_flag to true to indicate that the obstacles list has changed
         // Set change flag to false, since updated.
         geometry_msgs::Point camera_position = getCameraPosition(tf_buffer);
-        if (!line_of_sight)
+        bool occluded = is_target_occluded(camera_position, target_position, obstacles);
+        if (occluded)
         {
             change_flag = true;
         }
@@ -136,10 +141,15 @@ bool updateVoxelDome(sdc_interaction::UpdateVoxelDome::Request &req,
 
     // Set change flag to false, since updated.
         geometry_msgs::Point camera_position = getCameraPosition(tf_buffer);
-        if (!line_of_sight)
+        bool occluded = is_target_occluded(camera_position, target_position, obstacles);
+        if (occluded)
         {
             change_flag = true;
         }
+    
+
+
+
     return true;
 }
 
@@ -209,6 +219,29 @@ void executingTimerCallback()
 }
 
 
+void loggingCallback(const ros::TimerEvent &, tf2_ros::Buffer &tf_buffer) {
+    // ROS_INFO("[Interaction Debug]Voxels generated.");
+    // Publish the number of red and green voxels
+    std_msgs::Int32 red_voxels_msg;
+    red_voxels_msg.data = red_voxels;
+    red_voxels_pub.publish(red_voxels_msg);
+    
+    // Publish boolean if the target is occluded or not
+    std_msgs::Int32 occluded_msg;
+    // ROS_INFO("[Interaction Debug]Checking if the target is occluded...");
+    bool occluded = is_target_occluded(getCameraPosition(tf_buffer), target_position, obstacles);
+    if (line_of_sight)
+    {
+        occluded_msg.data = 1;
+    }
+    else
+    {
+        occluded_msg.data = 0;
+    }
+    occluded_pub.publish(occluded_msg);
+}
+
+
 void domeUpdateCallback(const ros::TimerEvent &, tf2_ros::Buffer &tf_buffer)
 {
     // ROS_INFO("[Interaction Debug]Timer callback triggered.");
@@ -240,7 +273,7 @@ void domeUpdateCallback(const ros::TimerEvent &, tf2_ros::Buffer &tf_buffer)
     orange.b = 0.0;
     orange.a = 1.0;
 
-    int red_voxels = 0;
+    red_voxels = 0;
     int green_voxels = 0;
 
 
@@ -278,25 +311,7 @@ void domeUpdateCallback(const ros::TimerEvent &, tf2_ros::Buffer &tf_buffer)
             }
         }
     }
-    // ROS_INFO("[Interaction Debug]Voxels generated.");
-    // Publish the number of red and green voxels
-    std_msgs::Int32 red_voxels_msg;
-    red_voxels_msg.data = red_voxels;
-    red_voxels_pub.publish(red_voxels_msg);
     
-    // Publish boolean if the target is occluded or not
-    std_msgs::Int32 occluded_msg;
-    // ROS_INFO("[Interaction Debug]Checking if the target is occluded...");
-    if (line_of_sight)
-    {
-        occluded_msg.data = 1;
-    }
-    else
-    {
-        occluded_msg.data = 0;
-    }
-    occluded_pub.publish(occluded_msg);
-
     // // Initialize the tf buffer and listener
     // // tf2_ros::TransformListener tf_listener(tf_buffer);
 
@@ -309,6 +324,8 @@ void domeUpdateCallback(const ros::TimerEvent &, tf2_ros::Buffer &tf_buffer)
     // ROS_INFO("[Interaction Debug]Publishing the marker...");
     marker.header.stamp = ros::Time::now();
     marker_pub.publish(marker);
+
+    
 
 }
 
@@ -389,23 +406,25 @@ int main(int argc, char **argv)
     marker.lifetime = ros::Duration();
 
     // Advertise the marker publisher
-    marker_pub = nh.advertise<visualization_msgs::Marker>("voxel_dome_marker", 0.2);
+    marker_pub = nh.advertise<visualization_msgs::Marker>("voxel_dome_marker", 0.1);
 
     ros::ServiceServer voxeldome_service = nh.advertiseService("update_voxel_dome", updateVoxelDome);
-    ros::Subscriber obstacle_locations_sub = nh.subscribe(obstacle_topic, 0.5, obstacleLocationsCallback);
-    ros::Subscriber target_coordinates_sub = nh.subscribe("target_coordinates", 0.5, targetPositionCallback);
+    ros::Subscriber obstacle_locations_sub = nh.subscribe(obstacle_topic, 0.1, obstacleLocationsCallback);
+    ros::Subscriber target_coordinates_sub = nh.subscribe("target_coordinates", 3, targetPositionCallback);
     ros::Subscriber lin_of_sight_sub = nh.subscribe("line_of_sight", 0.1, lineOfSightCallback);
     
     // Logging
-    red_voxels_pub = nh.advertise<std_msgs::Int32>("log/red_voxels", 0.2);
-    occluded_pub = nh.advertise<std_msgs::Int32>("log/occluded", 0.2);
+    red_voxels_pub = nh.advertise<std_msgs::Int32>("log/red_voxels", 0.1);
+    occluded_pub = nh.advertise<std_msgs::Int32>("log/occluded", 0.1);
 
     execute_observing_path_client = nh.serviceClient<sdc_interaction::ExecuteOberservingPath>("/execute_observing_path");
 
     // Create a timer to update the marker
-    ros::Timer timer_planning = nh.createTimer(ros::Duration(1), std::bind(planningTimerCallback, std::placeholders::_1, std::ref(tf_buffer)));
+    ros::Timer timer_planning = nh.createTimer(ros::Duration(0.1), std::bind(planningTimerCallback, std::placeholders::_1, std::ref(tf_buffer)));
     // ros::Timer timer_executing = nh.createTimer(ros::Duration(1), std::bind(executingTimerCallback, std::placeholders::_1, std::ref(tf_buffer)));
     ros::Timer timer_dome_updates = nh.createTimer(ros::Duration(0.1), std::bind(domeUpdateCallback, std::placeholders::_1, std::ref(tf_buffer)));
+
+    ros::Timer timer_logging = nh.createTimer(ros::Duration(0.1), std::bind(loggingCallback, std::placeholders::_1, std::ref(tf_buffer)));
 
     // Handle callbacks using ros::spin()
     ros::spin();

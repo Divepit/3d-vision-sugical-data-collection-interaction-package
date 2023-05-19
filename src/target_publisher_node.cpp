@@ -117,7 +117,7 @@ int main(int argc, char **argv)
     // Set the initial target position
     target_coordinate.x = 0.9;
     target_coordinate.y = 0;
-    target_coordinate.z = 0.175;
+    target_coordinate.z = 0.1;
 
     // Init gazebo target
     // visualizeGazeboSpawn(target_coordinate);

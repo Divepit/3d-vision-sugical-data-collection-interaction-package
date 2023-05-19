@@ -1,7 +1,7 @@
 use_dynamic_obstacle: false
 replan_trigger_obstacle: true
-replan_trigger_interval: 5
-replan_trigger_square: true
+replan_trigger_interval: 15
+replan_trigger_square: false
 replan_trigger_square_bound_x: 0.125
 replan_trigger_square_bound_y: 0.125
 replan_trigger_square_offset_z: 0.075
