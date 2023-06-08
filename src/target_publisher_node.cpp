@@ -58,9 +58,9 @@ void timer_callback(const ros::TimerEvent&){
     target_marker.id = 100;    
     target_marker.type = visualization_msgs::Marker::SPHERE;
     target_marker.action = visualization_msgs::Marker::ADD;
-    target_marker.scale.x = 0.1;
-    target_marker.scale.y = 0.1;
-    target_marker.scale.z = 0.1;
+    target_marker.scale.x = 0.05;
+    target_marker.scale.y = 0.05;
+    target_marker.scale.z = 0.05;
     target_marker.color.r = 0.0;
     target_marker.color.g = 0.0;
     target_marker.color.b = 1.0;
