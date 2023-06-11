@@ -136,7 +136,25 @@ You can adjust these values as needed to generate a voxel dome with the desired 
 
 # Sphere Obstacle Publisher Node
 
-## Changing obstacles
+Four different obstacle behaviours can be set in the `config.yaml` file:
+``` yaml
+use_dynamic_obstacle: boolean
+
+replan_trigger_obstacle: boolean
+replan_trigger_interval: int [s]
+
+replan_trigger_square: boolean
+replan_trigger_square_bound_x: float
+replan_trigger_square_bound_y: float
+replan_trigger_square_offset_z: float
+```
+
+1. If all booleans are set to false, the obstacle locations can be changes using the `change_obstacles` service.
+2. If only `use_dynamic_obstacle` is set to true, a sphere circling about the target is rendered into simulation.
+3. If only `replan_trigger_obstacle` is set to true, every `replan_trigger_interval` seconds, an obstacle between the current camera and target position is rendered.
+4. If only `replan_trigger_square` is set to true, a sphere will be rendered `replan_trigger_square_offset_z` above the target in a square with bounds `replan_trigger_square_bound_x` and `replan_trigger_square_bound_y`.
+
+## Change Obstacles Service
 To change the obstacles, call the `change_obstacles` service with a list of `Sphere` messages. Here's an example of how to call the service using the `rosservice` command-line tool:
 
 ``` bash
@@ -146,4 +164,3 @@ rosservice call /change_obstacles "obstacles: {spheres: [{center: {x: 2.0, y: 0.
 This command updates the list of obstacles with two spheres. The first sphere has its center at `(2.0, 0.0, 1.0)` and a radius of `0.125`. The second sphere has its center at `(2.0, 1.0, 1.0)` and a radius of `0.125`.
 
 You can also change the obstacles programmatically in another ROS node by creating a client for the `change_obstacles` service and sending the new list of spheres.
-
